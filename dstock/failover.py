@@ -1,8 +1,6 @@
 """Nâng bản chính thủ công và epoch. Đây là cách duy nhất để ghi tiếp khi bản chính chết
 hoặc khi cụm mất đa số.
 
-Người phụ trách: TV1.
-
 Phạm vi đã chốt (docs/architecture.md và docs/operations.md, mục "Khi node chết"):
   - Một bản sao chết hẳn: hệ thống tự chịu được (còn 3/4 là đa số, vẫn ghi).
   - Không có bầu cử tự động, trong mọi trường hợp.
@@ -13,7 +11,7 @@ Phạm vi đã chốt (docs/architecture.md và docs/operations.md, mục "Khi n
 Vì sao làm thủ công: phần mềm không phân biệt được "node chết thật" với "mạng đứt". Người quản trị
 xác nhận node đã chết rồi mới nâng thì không thể có hai bản chính. Phần dữ liệu chưa kịp lan tới
 node được nâng (tối đa khoảng n giây ở N3, dưới n thao tác ở N4) sẽ mất; nó được lưu lại thành
-entry mồ côi khi bản chính cũ quay về. Ghi rõ điều này trong báo cáo.
+entry mồ côi khi bản chính cũ quay về. Đây là giới hạn đã chấp nhận (docs/architecture.md, mục Giới hạn).
 
 Node có sẵn:
     node.members / node.primary_id      đọc từ bảng meta (mặc định: mọi node / cfg.primary)
@@ -25,7 +23,7 @@ Node có sẵn:
     node.channel_to(nid), node.replication_stub(nid), node.store.snapshot(), node.store.replace_log(entries)
     Admin.Promote(exclude) -> node.promote(exclude) -> promote() bên dưới
 
-Việc cần làm (TODO(TV1)):
+Việc cần làm (TODO):
   promote(node, exclude): gọi trên node muốn làm bản chính. Có thể gọi trên chính bản chính hiện tại,
   khi đó là thu hẹp thành viên để ghi tiếp (hai bản sao chết, N1 còn sống).
     1. Từ chối (raise PromoteRefused) nếu:
@@ -38,16 +36,16 @@ Việc cần làm (TODO(TV1)):
     3. node.apply_role(). Các node vừa trả lời Admin.Status ở bước 1 chắc chắn đang sống, nên gọi
        node.membership.record_seen(nid) cho chúng; như vậy lệnh ghi ngay sau khi nâng không bị
        NO_QUORUM chỉ vì vòng PING chưa kịp chạy.
-  on_peer_status(node, nid, status): membership (TV2) gọi sau mỗi PING thành công; node cũng gọi khi
+  on_peer_status(node, nid, status): membership gọi sau mỗi PING thành công; node cũng gọi khi
   bản chính khởi động. Nếu status.role == "PRIMARY" và status.epoch > epoch của mình thì mình là bản
   chính cũ hoặc đang lạc hậu, phải hạ cấp:
     a. FetchSince(0) từ bản chính mới; điểm chung = tiền tố dài nhất có hash trùng nhau;
     b. entry của mình nằm sau điểm chung là entry mồ côi: ghi ra data/<id>/orphans-<ts>.jsonl
        (Entry.to_json) để người xem xét, rồi replace_log(nhật ký của bản chính mới);
     c. lưu epoch / primary / members mới vào meta, gọi node.apply_role() để thành bản sao.
-  (Nhận lại node quay về cụm là việc của TV2, ở membership.readmit().)
+  (Nhận lại node quay về cụm nằm ở membership.readmit().)
   services.ReplicationService.Append: chặn bản chính cũ bằng STALE_EPOCH.
-  Test: tests/acceptance/test_tv1_failover.py
+  Test: tests/acceptance/test_failover.py
 """
 from __future__ import annotations
 
@@ -59,8 +57,8 @@ if TYPE_CHECKING:
 
 
 def promote(node: "Node", exclude: list[str]) -> None:
-    raise NotImplementedError("TV1: nâng bản chính thủ công chưa được cài đặt (dstock/failover.py)")
+    raise NotImplementedError("nâng bản chính thủ công chưa được cài đặt (dstock/failover.py)")
 
 
 def on_peer_status(node: "Node", nid: str, status: "pb.NodeStatus") -> None:
-    pass   # TODO(TV1): hạ cấp khi thấy bản chính có epoch lớn hơn (xem docstring)
+    pass   # TODO: hạ cấp khi thấy bản chính có epoch lớn hơn (xem docstring)

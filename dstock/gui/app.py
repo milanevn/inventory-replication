@@ -1,7 +1,5 @@
 """Bảng điều khiển Tkinter (GUI) — chỉ là CLIENT: quan sát + điều khiển, KHÔNG chứa logic phân tán.
 
-Chủ sở hữu: TV5.
-
     python -m dstock.gui
 
 Kiến trúc luồng (quan trọng với Tkinter: CHỈ thread chính được đụng vào widget):
@@ -142,7 +140,7 @@ class Dashboard:
         self.n_value = ttk.Entry(ctl, width=6)
         self.n_value.pack(side="left")
         ttk.Button(ctl, text="Áp dụng", command=self.set_n).pack(side="left", padx=4)
-        # TODO(TV5): khung "Gây lỗi mạng": chọn kênh + cắt / bỏ x% / trễ y ms -> client.set_fault(...)
+        # TODO: khung "Gây lỗi mạng": chọn kênh + cắt / bỏ x% / trễ y ms -> client.set_fault(...)
 
     def _build_write(self, parent) -> None:
         f = ttk.LabelFrame(parent, text=" Ghi phiếu (gửi tới bản chính) ", padding=6)

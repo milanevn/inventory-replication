@@ -13,7 +13,7 @@
 
 primary = "N1"
 data_dir = "data"            # mỗi node ghi vào data/<id>/
-snapshot_every = 50          # TV4: tạo checkpoint sau mỗi n entry (chưa dùng ở M0)
+snapshot_every = 50          # tạo checkpoint sau mỗi n entry (chưa dùng)
 
 [nodes.N1]
 host = "192.168.1.11"
@@ -49,7 +49,7 @@ to = "N4"
 mode = "count"
 param = 3
 
-# Nguồn để node kéo dữ liệu khi PHỤC HỒI (TV4) — đi THEO CHIỀU CẠNH của sơ đồ đề:
+# Nguồn để node kéo dữ liệu khi PHỤC HỒI (recovery.py) — đi THEO CHIỀU CẠNH của sơ đồ đề:
 #   N2, N3 kéo từ N1; N4 CHỈ kéo từ N2 (đề: s4 chỉ nhận dữ liệu từ s2).
 #   Riêng bản chính N1 kéo từ bản sao có last_lsn LỚN NHẤT (1->2 không chờ xác nhận nên N2 có
 #   thể thiếu so với N3). Chọn nguồn OK có last_lsn lớn nhất; hòa thì theo thứ tự danh sách.

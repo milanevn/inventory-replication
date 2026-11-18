@@ -1,1 +1,1 @@
-"""Bảng điều khiển Tkinter — TV5."""
+"""Bảng điều khiển Tkinter."""

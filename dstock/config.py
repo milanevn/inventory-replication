@@ -1,6 +1,4 @@
 """Đọc cấu hình cụm (cluster.toml).
-
-Chủ sở hữu: TV1 (tech lead).
 """
 from __future__ import annotations
 

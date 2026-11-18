@@ -1,4 +1,4 @@
-"""Test chấp nhận mốc M0 — cụm 4 node chạy trọn luồng. Luôn phải XANH trên main."""
+"""Test khói: cụm 4 node chạy trọn luồng. Luôn phải XANH trên main."""
 import threading
 
 from harness import wait_until

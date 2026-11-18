@@ -1,4 +1,4 @@
-"""TV3 — Chế độ CHỈ ĐỌC khi bản chính sập.  Mốc M4.
+"""Chế độ CHỈ ĐỌC khi bản chính sập.
 
 Đặc tả:
   - client.stock() không chỉ định node: gọi bản chính; gặp lỗi gRPC thì CHUYỂN NGAY (không chờ
@@ -9,7 +9,7 @@ Xong: XÓA dòng pytestmark bên dưới.
 """
 import pytest
 
-pytestmark = pytest.mark.todo("TV3")
+pytestmark = pytest.mark.todo
 
 
 def test_N1_sap_thi_doc_tu_node_moi_nhat(make_cluster):

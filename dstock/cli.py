@@ -9,7 +9,7 @@
     python -m dstock.cli status                     # bảng tóm tắt 4 node
     python -m dstock.cli set-n N4 5                 # kênh N2->N4: gửi sau 5 lần
     python -m dstock.cli set-n N3 10                # kênh N1->N3: gửi sau 10 giây
-    python -m dstock.cli fault N1 N3 --partition    # cắt kênh N1->N3   (TV5)
+    python -m dstock.cli fault N1 N3 --partition    # cắt kênh N1->N3
     python -m dstock.cli fault N1 N3                # gỡ lỗi
     python -m dstock.cli crash N3                   # giết tiến trình N3
     python -m dstock.cli promote N3 --exclude N1 N2 # NÂNG THỦ CÔNG N3 lên bản chính (N1, N2 đã chết)

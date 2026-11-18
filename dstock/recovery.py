@@ -1,7 +1,5 @@
 """PHỤC HỒI khi dữ liệu bị tổn hại.
 
-Chủ sở hữu: TV4.
-
 Đã có sẵn (dùng được ngay):
   - store.open() phát hiện oplog bị SỬA/xóa dòng giữa/ghi dở bằng chuỗi hash: giữ phần TỐT,
     đặt health=CORRUPT.
@@ -17,7 +15,7 @@ Chủ sở hữu: TV4.
 Thread nền: BẮT BUỘC dùng node.spawn(fn, "tên") và thoát vòng khi node.stopping được bật
 (`while not node.stopping.wait(0.3): ...`) — không thì dừng node có thể treo cả tiến trình.
 
-Việc của TV4 (xem docs/architecture.md, mục Quyết định thiết kế) — chỉ sửa recovery.py + checkpoint.py:
+Việc cần làm (TODO; xem docs/architecture.md, mục Quyết định thiết kế) — chỉ sửa recovery.py + checkpoint.py:
   1. Vòng phục hồi chạy NỀN SUỐT ĐỜI node (không chỉ lúc khởi động): thấy health CORRUPT thì
      cách ly file (*.corrupt-<ts>), hỏi Status MỌI nguồn trong cfg.recovery_sources[node_id],
      chọn nguồn OK có last_lsn LỚN NHẤT (hòa: theo thứ tự danh sách), FetchSince(len(phần tốt)),
@@ -28,9 +26,7 @@ Việc của TV4 (xem docs/architecture.md, mục Quyết định thiết kế) 
      tưởng lệch rồi ghi đè => làm MẤT entry vừa fsync. File lệch thì ghi lại từ RAM (khắc phục tiến).
   3. Checkpoint (state-based): lưu snapshot mỗi cfg.snapshot_every entry (qua add_listener). Khi
      khởi động: replay xong so digest với checkpoint để kiểm tra chéo. (Cắt bớt oplog nhờ checkpoint
-     là tùy chọn — cần sửa store.py, báo TV1 trước.)
-  4. Báo cáo: khắc phục tiến (scrub từ RAM) / lùi (replay oplog, checkpoint), dựa trên thao tác /
-     dựa trên trạng thái — bài 12. Bảng các loại hỏng đã thử và kết quả.
+     là tùy chọn — cần sửa store.py, báo trong nhóm trước.)
 """
 from __future__ import annotations
 
@@ -48,14 +44,14 @@ log = logging.getLogger(__name__)
 def on_startup(node: "Node") -> None:
     """Gọi sau khi store.open() và server đã chạy (để node khác gọi được tới mình)."""
     if node.store.health == HEALTH_CORRUPT:
-        # TODO(TV4): phục hồi từ node.cfg.recovery_sources[node.id] — xem fetch_from().
-        log.error("[%s] dữ liệu hỏng, CHƯA có phục hồi tự động (TV4). Node từ chối ghi.", node.id)
+        # TODO: phục hồi từ node.cfg.recovery_sources[node.id] — xem fetch_from().
+        log.error("[%s] dữ liệu hỏng, CHƯA có phục hồi tự động. Node từ chối ghi.", node.id)
 
 
 def fetch_from(node: "Node", source_id: str, after_lsn: int) -> list:
     """Kéo các entry có lsn > after_lsn từ `source_id`. Trả list[Entry].
 
-    TODO(TV4): stub = node.replication_stub(source_id);
+    TODO: stub = node.replication_stub(source_id);
                [entry_from_pb(m) for m in stub.FetchSince(pb.FetchRequest(...), timeout=...)]
     """
-    raise NotImplementedError("TV4")
+    raise NotImplementedError("phục hồi chưa được cài đặt (dstock/recovery.py)")

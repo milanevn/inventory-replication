@@ -1,4 +1,4 @@
-"""TV4 — PHỤC HỒI khi dữ liệu bị tổn hại.  Mốc M3.
+"""PHỤC HỒI khi dữ liệu bị tổn hại.
 
 Quy tắc chọn nguồn (cluster.toml [recovery_sources]) — đi THEO CHIỀU CẠNH:
     N2, N3 <- N1;  N4 <- CHỈ N2;  N1 <- bản sao có last_lsn LỚN NHẤT.
@@ -14,7 +14,7 @@ from dstock import checkpoint
 from dstock.oplog import OpLog
 from harness import wait_until
 
-pytestmark = pytest.mark.todo("TV4")
+pytestmark = pytest.mark.todo
 
 
 def _ghi(c, n):
@@ -134,7 +134,7 @@ def test_N4_chi_phuc_hoi_tu_N2_va_thu_lai(make_cluster):
 
 
 # ---------------------------------------------------------------- TÙY CHỌN
-@pytest.mark.todo("TV4", optional=True)
+@pytest.mark.todo(optional=True)
 def test_ban_chinh_bi_phat_hien_hong_khi_dang_chay_tu_phuc_hoi(make_cluster):
     c = make_cluster()
     _ghi(c, 5)
@@ -146,7 +146,7 @@ def test_ban_chinh_bi_phat_hien_hong_khi_dang_chay_tu_phuc_hoi(make_cluster):
     assert wait_until(lambda: c.health("N1") == "OK" and c.lsn("N1") == 5, timeout=8)
 
 
-@pytest.mark.todo("TV4", optional=True)
+@pytest.mark.todo(optional=True)
 def test_scrub_phat_hien_hong_khi_dang_chay(make_cluster):
     """Sửa CSDL khi node vẫn chạy -> được phát hiện và sửa lại (khắc phục tiến từ RAM).
     Scrub phải so sánh + ghi lại TRONG store.lock."""
@@ -158,7 +158,7 @@ def test_scrub_phat_hien_hong_khi_dang_chay(make_cluster):
     assert c.health("N4") == "OK"
 
 
-@pytest.mark.todo("TV4", optional=True)
+@pytest.mark.todo(optional=True)
 def test_checkpoint_dinh_ky_va_hop_le(make_cluster):
     c = make_cluster(snapshot_every=5)
     _ghi(c, 12)

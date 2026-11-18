@@ -4,7 +4,7 @@ Dùng qua fixture `make_cluster` trong conftest.py:
 
     def test_x(make_cluster):
         c = make_cluster()                       # mặc định: lan truyền nhanh (FAST_LINKS)
-        c = make_cluster(links=SPEC_LINKS)       # đúng đề: interval 1s, count 3 (test TV3)
+        c = make_cluster(links=SPEC_LINKS)       # đúng đề: interval 1s, count 3 (test triggers)
         c.client.nhap("PN1", parse_lines(["SP01:5"]))
         assert c.wait_converged()
         c.stop("N3"); ...; c.start("N3")
@@ -26,14 +26,14 @@ from dstock.node import Node
 NODE_IDS = ("N1", "N2", "N3", "N4")
 
 # Mặc định cho test KHÔNG nói về trigger: lan truyền nhanh để test không phụ thuộc n
-# (count=1, interval=0.2s) — nhờ vậy test vẫn đúng cả TRƯỚC và SAU khi TV3 làm trigger.
+# (count=1, interval=0.2s) — nhờ vậy test vẫn đúng cả TRƯỚC và SAU khi có trigger.
 FAST_LINKS = [
     {"from": "N1", "to": "N2", "mode": "sync"},
     {"from": "N1", "to": "N3", "mode": "interval", "param": 0.2},
     {"from": "N2", "to": "N4", "mode": "count", "param": 1},
 ]
 
-# Tham số "đúng đề" cho test của TV3: interval 1 giây, count 3 lần.
+# Tham số "đúng đề" cho test triggers: interval 1 giây, count 3 lần.
 SPEC_LINKS = [
     {"from": "N1", "to": "N2", "mode": "sync"},
     {"from": "N1", "to": "N3", "mode": "interval", "param": 1},

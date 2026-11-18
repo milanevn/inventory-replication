@@ -8,13 +8,13 @@ Mỗi module có một nhánh riêng, đặt đúng tên module, dùng suốt đ
 
 | Nhánh | Phần việc |
 |---|---|
-| `failover` | nâng bản chính, epoch, chặn bản chính cũ (TV1) |
-| `membership` | PING, đa số, nhận lại node, heartbeat trong `link.py` (TV2) |
-| `triggers` | gửi sau n giây, sau n lần (TV3) |
-| `client` | chế độ chỉ đọc khi mất bản chính (TV3) |
-| `recovery` | phục hồi khi dữ liệu tổn hại (TV4) |
-| `faults` | gây lỗi mạng (TV5) |
-| `gui` | bảng điều khiển (TV5) |
+| `failover` | nâng bản chính, epoch, chặn bản chính cũ |
+| `membership` | PING, đa số, nhận lại node, heartbeat trong `link.py` |
+| `triggers` | gửi sau n giây, sau n lần |
+| `client` | chế độ chỉ đọc khi mất bản chính |
+| `recovery` | phục hồi khi dữ liệu tổn hại |
+| `faults` | gây lỗi mạng |
+| `gui` | bảng điều khiển |
 | `docs` | tài liệu |
 
 Phần việc của module cần sửa sang file khác thì vẫn làm trên nhánh của module đó.
@@ -65,16 +65,15 @@ Một phần việc được coi là xong khi:
 
 - test chấp nhận của phần đó xanh (đã xóa dòng `pytestmark = pytest.mark.todo(...)`), chạy 3 lần liên tiếp không lần nào đỏ, và toàn bộ `pytest` vẫn xanh;
 - demo được bằng GUI hoặc CLI;
-- PR đã được duyệt và merge;
-- đã viết phần báo cáo của mình.
+- PR đã được duyệt và merge.
 
 ## File dùng chung
 
-Mỗi người chủ yếu sửa module của mình. Docstring đầu mỗi module và các comment `TODO(TVx)` ghi rõ phần nào của ai. Những file dưới đây nhiều phần cùng dựa vào, nên báo trong nhóm trước khi sửa:
+Docstring đầu mỗi module và các comment `TODO` ghi rõ phần nào còn phải làm. Những file dưới đây nhiều phần cùng dựa vào, nên báo trong nhóm trước khi sửa:
 
 - `proto/dstock.proto`: chỉ thêm field hoặc RPC, không đổi và không xóa cái cũ. Sửa xong chạy `python scripts/gen_proto.py`, commit cả file sinh ra trong `dstock/rpc/`, PR gắn nhãn `contract`.
 - `store.py`, `oplog.py`, `node.py`, `domain.py`, `schema.sql`: phần lõi.
-- `services.py`, `replication/link.py`, `client.py`: mỗi file có đoạn của vài người khác nhau, chỉ sửa đúng đoạn `TODO` của mình.
+- `services.py`, `replication/link.py`, `client.py`: mỗi file có đoạn `TODO` thuộc vài module khác nhau, chỉ sửa đúng đoạn của module mình đang làm.
 
 Đổi một quyết định thiết kế thì bàn trong nhóm trước, rồi sửa mục "Quyết định thiết kế" trong [docs/architecture.md](docs/architecture.md) ngay trong PR đó, gắn nhãn `decision`.
 
@@ -82,7 +81,7 @@ Mỗi người chủ yếu sửa module của mình. Docstring đầu mỗi modu
 
 ```bash
 pytest                         # test lõi, phải xanh (45 passed, 42 skipped)
-pytest --run-todo -k tv3       # test chấp nhận của phần TV3
+pytest --run-todo -k triggers  # chỉ test chấp nhận của triggers
 pytest --run-optional          # thêm test của phần tùy chọn
 pytest -x -q tests/test_store.py::test_req_id_trung_khong_ghi_lai
 ```

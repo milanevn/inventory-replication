@@ -1,6 +1,6 @@
-"""TV1: nâng bản chính thủ công và epoch (docs/operations.md, mục "Khi node chết"). Mốc M4.
+"""Nâng bản chính thủ công và epoch (docs/operations.md, mục "Khi node chết").
 
-File được sửa: dstock/failover.py, đoạn TODO(TV1) trong services.ReplicationService.Append (STALE_EPOCH).
+File được sửa: dstock/failover.py, đoạn TODO trong services.ReplicationService.Append (STALE_EPOCH).
 Làm xong thì xóa dòng pytestmark bên dưới và chạy file này 3 lần liên tiếp đều xanh.
 """
 import json
@@ -13,7 +13,7 @@ from dstock.domain import Line
 from dstock.rpc import dstock_pb2 as pb
 from harness import wait_until
 
-pytestmark = pytest.mark.todo("TV1")
+pytestmark = pytest.mark.todo
 
 
 def _role(c, nid):

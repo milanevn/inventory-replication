@@ -10,7 +10,7 @@
 - [ ] Test của mình chạy 3 lần liên tiếp đều xanh
 - [ ] Đã xóa `pytestmark = pytest.mark.todo(...)` của các test đã làm xong
 - [ ] Đã thử bằng GUI hoặc CLI (ghi lệnh ở mục dưới)
-- [ ] Không sửa file của người khác, hoặc đã báo người đó
+- [ ] Chỉ sửa file của module đang làm; file dùng chung thì đã báo trong nhóm
 - [ ] Nếu sửa `proto/`: đã chạy `python scripts/gen_proto.py` và commit file sinh ra
 
 ## Cách thử

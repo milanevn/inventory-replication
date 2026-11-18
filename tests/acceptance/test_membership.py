@@ -1,6 +1,6 @@
-"""TV2: PING định kỳ, luật đa số, nhận lại node quay về, heartbeat của kênh. Mốc M1-M2.
+"""PING định kỳ, luật đa số, nhận lại node quay về, heartbeat của kênh.
 
-File được sửa: dstock/membership.py, các chỗ TODO(TV2) trong dstock/replication/link.py.
+File được sửa: dstock/membership.py, các chỗ TODO trong dstock/replication/link.py.
 Làm xong thì xóa dòng pytestmark (và dấu todo tùy chọn nếu làm) rồi chạy file này 3 lần liên tiếp đều xanh.
 """
 import json
@@ -10,7 +10,7 @@ import pytest
 
 from harness import wait_until
 
-pytestmark = pytest.mark.todo("TV2")
+pytestmark = pytest.mark.todo
 
 
 def test_mat_mot_node_van_ghi_mat_hai_node_thi_tu_choi(make_cluster):
@@ -36,7 +36,7 @@ def test_co_lai_da_so_thi_ghi_tiep(make_cluster):
 
 
 def test_da_so_tinh_theo_danh_sach_thanh_vien_hien_tai(make_cluster):
-    """Sau khi nâng bản chính (TV1), thành viên có thể chỉ còn 2 -> đa số = 2. Mô phỏng bằng meta."""
+    """Sau khi nâng bản chính, thành viên có thể chỉ còn 2 -> đa số = 2. Mô phỏng bằng meta."""
     c = make_cluster()
     c.nodes["N1"].store.set_meta("members", json.dumps(["N1", "N2"]))
     assert c.nhap("PN1", "SP01:1").ok                  # thấy N2 -> 2/2
@@ -46,7 +46,7 @@ def test_da_so_tinh_theo_danh_sach_thanh_vien_hien_tai(make_cluster):
 
 
 def _gia_lap_nang(c, nid, members, epoch=1):
-    """Dựng trạng thái "đã nâng nid lên bản chính" bằng meta, để test này không phải chờ TV1."""
+    """Dựng trạng thái "đã nâng nid lên bản chính" bằng meta, để test này không phải chờ failover.py."""
     node = c.nodes[nid]
     with node.role_lock:
         node.store.set_meta("epoch", str(epoch))
@@ -93,7 +93,7 @@ def test_heartbeat_phat_hien_dich_mat_du_lieu(make_cluster):
     assert c.wait_lsn("N3", 3, timeout=3)
 
 
-@pytest.mark.todo("TV2", optional=True)
+@pytest.mark.todo(optional=True)
 def test_backoff_khi_dich_chet_lau(make_cluster):
     """Đích chết, có dữ liệu chờ: số lần gọi trong 6 giây phải ít (backoff 0.5 -> 1 -> 2 -> ... 5s)."""
     c = make_cluster()

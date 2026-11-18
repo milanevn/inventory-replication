@@ -1,7 +1,5 @@
 """Nhật ký thay đổi (change_log) + các bảng dẫn xuất, lưu trong SQLite — NGUỒN SỰ THẬT của mỗi node.
 
-Chủ sở hữu: TV1 (định dạng, lưu trữ) — TV4 dùng để phát hiện/khắc phục hỏng.
-
 File: data/<node>/dstock.db, schema ở dstock/schema.sql. Mỗi entry được ghi trong MỘT transaction:
     INSERT change_log  +  cập nhật san_pham / phieu / phieu_ct / ton_kho
 => không bao giờ có trạng thái "đã ghi phiếu mà chưa trừ tồn" (tính nguyên tử — ACID).

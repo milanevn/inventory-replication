@@ -1,7 +1,5 @@
 """Thư viện client dùng chung cho CLI, GUI và test.
 
-Chủ sở hữu: TV5 (riêng stock() khi bản chính sập: TV3 — mốc M4).
-
 Mọi lệnh ghi đi vào bản chính. req_id sinh 1 lần cho mỗi phiếu và GIỮ NGUYÊN khi gửi lại
 => nếu lần gửi đầu đã ghi nhưng mất phản hồi, lần gửi lại không ghi trùng.
 """
@@ -108,10 +106,10 @@ class ClusterClient:
         return self.write("XUAT", code, lines, note)
 
     def stock(self, node_id: str | None = None, skus: list[str] | None = None) -> pb.StockReply:
-        # TODO(TV3): CHẾ ĐỘ CHỈ ĐỌC — node_id=None và bản chính lỗi gRPC -> CHUYỂN NGAY sang node
+        # TODO: CHẾ ĐỘ CHỈ ĐỌC — node_id=None và bản chính lỗi gRPC -> CHUYỂN NGAY sang node
         #   còn sống có last_lsn lớn nhất; hòa thì theo thứ tự cfg.recovery_sources[primary].
         #   NHẤT QUÁN ĐỌC ĐỀU: nhớ lsn lớn nhất đã đọc; node tốt nhất còn lại cũ hơn => raise StaleRead.
-        #   Đặc tả + test: tests/acceptance/test_tv3_readonly.py.
+        #   Đặc tả + test: tests/acceptance/test_readonly.py.
         return self.inventory(node_id or self.primary).GetStock(
             pb.StockQuery(skus=skus or []), timeout=self.timeout)
 

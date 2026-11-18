@@ -1,9 +1,9 @@
 """Cài đặt 3 service gRPC của một node. Mỏng: chỉ chuyển đổi message rồi gọi Node/Store.
 
-Chủ sở hữu: TV1. Điểm móc của thành viên (KHÔNG cần sửa file này):
-  - quorum (TV2)        : node.has_quorum()         — dstock/membership.py
-  - nâng bản chính (TV1): node.promote(exclude)     — dstock/failover.py
-  - phục hồi (TV4)      : FetchSince đã có sẵn      — dstock/recovery.py
+Điểm móc tới các module khác (các module đó KHÔNG cần sửa file này):
+  - quorum         : node.has_quorum()         — dstock/membership.py
+  - nâng bản chính : node.promote(exclude)     — dstock/failover.py
+  - phục hồi       : FetchSince đã có sẵn      — dstock/recovery.py
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ class ReplicationService(pbg.ReplicationServicer):
 
     def Append(self, request: pb.AppendRequest, context) -> pb.AppendReply:
         entries = [entry_from_pb(m) for m in request.entries]
-        # TODO(TV1): CHẶN BẢN CHÍNH CŨ — request.epoch < self.node.store.epoch thì trả
+        # TODO: CHẶN BẢN CHÍNH CŨ — request.epoch < self.node.store.epoch thì trả
         #   AppendReply(ok=False, error="STALE_EPOCH", epoch=store.epoch) và KHÔNG áp dụng gì.
         #   request.epoch > store.epoch: nhận bản chính mới (lưu epoch/primary vào meta).
         r = self.node.store.apply_replicated(entries)
@@ -78,7 +78,7 @@ class ReplicationService(pbg.ReplicationServicer):
                               epoch=self.node.store.epoch)
 
     def FetchSince(self, request: pb.FetchRequest, context):
-        # TV4 dùng khi phục hồi. Chỉ trả phần TỐT của oplog (store đã cắt phần hỏng khi load).
+        # recovery.py dùng khi phục hồi. Chỉ trả phần TỐT của oplog (store đã cắt phần hỏng khi load).
         for e in self.node.store.oplog.since(request.after_lsn):
             yield entry_to_pb(e)
 

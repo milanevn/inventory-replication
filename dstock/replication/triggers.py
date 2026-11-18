@@ -1,7 +1,5 @@
 """Điều kiện kích hoạt gửi của một kênh nhân bản.
 
-Chủ sở hữu: TV3.
-
 Kênh nhân bản (link.py) gọi `due(pending, since_last_flush, oldest_age)` mỗi khi có entry mới
 hoặc mỗi `wait_timeout()` giây. Trả True => kênh gửi TOÀN BỘ phần đang chờ tại thời điểm đó.
 
@@ -64,10 +62,10 @@ class IntervalTrigger(Trigger):
     mode = "interval"
 
     def due(self, pending: int, since_last_flush: float, oldest_age: float) -> bool:
-        # TODO(TV3): gửi khi entry chờ cũ nhất đã chờ đủ n giây (oldest_age >= self.param).
+        # TODO: gửi khi entry chờ cũ nhất đã chờ đủ n giây (oldest_age >= self.param).
         #   Cân nhắc: wait_timeout() có nên phụ thuộc n (n = 0.5s thì thức 0.2s là quá thô)?
-        #   Bật tests/acceptance/test_tv3_triggers.py để kiểm tra.
-        return pending > 0  # TẠM THỜI gửi ngay để cụm chạy được ở M0
+        #   Bật tests/acceptance/test_triggers.py để kiểm tra.
+        return pending > 0  # TẠM THỜI gửi ngay để cụm chạy được
 
 
 class CountTrigger(Trigger):
@@ -75,10 +73,10 @@ class CountTrigger(Trigger):
     mode = "count"
 
     def due(self, pending: int, since_last_flush: float, oldest_age: float) -> bool:
-        # TODO(TV3): chỉ gửi khi pending >= n (n = int(self.param)).
+        # TODO: chỉ gửi khi pending >= n (n = int(self.param)).
         #   Cân nhắc: đổi n từ 10 xuống 3 trong lúc đang dồn 5 => gửi ngay.
         #   "1 lần cập nhật" = 1 phiếu = 1 entry (docs/architecture.md).
-        return pending > 0  # TẠM THỜI gửi ngay để cụm chạy được ở M0
+        return pending > 0  # TẠM THỜI gửi ngay để cụm chạy được
 
 
 TRIGGERS: dict[str, type[Trigger]] = {

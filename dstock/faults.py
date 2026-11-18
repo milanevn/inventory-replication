@@ -1,7 +1,5 @@
 """Lớp GÂY LỖI MẠNG cho demo và test — interceptor gRPC phía client của mỗi kênh đi ra.
 
-Chủ sở hữu: TV5.
-
 Mỗi kênh nhân bản (nguồn -> đích) đi qua một FaultInterceptor gắn với `dst`.
 Admin.SetFault(FaultRule) ghi luật vào FaultInjector của node nguồn; interceptor đọc luật
 trước mỗi lời gọi. Code nhân bản KHÔNG biết gì về lớp này — đúng như mạng thật.
@@ -72,14 +70,14 @@ class FaultInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.UnaryStreamClientI
         rule = self.injector.rule_for(self.dst)
         if rule.is_noop():
             return
-        # TODO(TV5): áp dụng luật:
+        # TODO: áp dụng luật:
         #   - partition  -> ném lỗi UNAVAILABLE ngay (không gửi gì)
         #   - drop_rate  -> random() < drop_rate thì ném UNAVAILABLE
         #   - delay_ms   -> time.sleep(delay_ms / 1000) rồi gửi bình thường
         # Mỗi lần THỰC SỰ gây lỗi: gọi self.injector.count_injected().
         # Gợi ý ném lỗi: tạo class InjectedFault(grpc.RpcError) có method code() trả
         # grpc.StatusCode.UNAVAILABLE và details() trả "injected" — link.py bắt grpc.RpcError.
-        # Bật tests/acceptance/test_tv5_faults.py để kiểm tra.
+        # Bật tests/acceptance/test_faults.py để kiểm tra.
 
     def intercept_unary_unary(self, continuation, client_call_details, request):
         self._before_call()

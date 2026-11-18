@@ -9,13 +9,13 @@ from harness import Cluster  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
-# Test chấp nhận của từng thành viên:
-#   pytestmark = pytest.mark.todo("TV3")                  BẮT BUỘC (đủ đề) — chưa làm
-#   @pytest.mark.todo("TV4", optional=True)               TÙY CHỌN (làm nếu còn thời gian)
+# Test chấp nhận của các phần còn thiếu (tests/acceptance/):
+#   pytestmark = pytest.mark.todo                         BẮT BUỘC (đủ đề) — chưa làm
+#   @pytest.mark.todo(optional=True)                      TÙY CHỌN (làm nếu còn thời gian)
 # Mặc định cả hai bị BỎ QUA (để main luôn xanh). Làm xong thì XÓA dấu todo của test đó.
-#   pytest --run-todo          chạy thêm test BẮT BUỘC chưa làm (tech lead xem tiến độ)
+#   pytest --run-todo          chạy thêm test BẮT BUỘC chưa làm (xem tiến độ)
 #   pytest --run-optional      chạy thêm cả test TÙY CHỌN
-#   pytest --run-todo -k tv3   chỉ test của TV3
+#   pytest --run-todo -k triggers   chỉ test chấp nhận của triggers
 # ---------------------------------------------------------------------------
 def pytest_addoption(parser):
     parser.addoption("--run-todo", action="store_true", help="chạy cả test chấp nhận BẮT BUỘC chưa làm")
@@ -29,12 +29,12 @@ def pytest_collection_modifyitems(config, items):
         m = item.get_closest_marker("todo")
         if not m:
             continue
-        owner = m.args[0] if m.args else "?"
+        part = item.path.stem.removeprefix("test_")
         if m.kwargs.get("optional"):
             if not run_opt:
-                item.add_marker(pytest.mark.skip(reason=f"TÙY CHỌN({owner}) — chạy bằng --run-optional"))
+                item.add_marker(pytest.mark.skip(reason=f"TÙY CHỌN({part}) — chạy bằng --run-optional"))
         elif not run_todo:
-            item.add_marker(pytest.mark.skip(reason=f"TODO({owner}) — chạy bằng --run-todo"))
+            item.add_marker(pytest.mark.skip(reason=f"TODO({part}) — chạy bằng --run-todo"))
 
 
 @pytest.fixture

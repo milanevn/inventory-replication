@@ -1,11 +1,9 @@
 """Checkpoint (khắc phục lùi dựa trên TRẠNG THÁI — bài 12).
 
-Chủ sở hữu: TV4.
-
 File data/<node>/checkpoint.json:
     {"lsn": 120, "last_hash": "...", "stock": {...}, "checksum": "sha256 của 3 field trên"}
 
-Đã có: save / load có checksum. TODO(TV4): dùng trong recovery.py (qua store.add_listener).
+Đã có: save / load có checksum. TODO: dùng trong recovery.py (qua store.add_listener).
 """
 from __future__ import annotations
 

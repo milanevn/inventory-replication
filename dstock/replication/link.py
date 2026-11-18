@@ -1,6 +1,6 @@
 """ReplicationLink — một kênh nhân bản một chiều nguồn -> đích, kiểu PUSH.
 
-Chủ sở hữu: khung = TV1; heartbeat / backoff = TV2 (các chỗ TODO(TV2)). TV3 chỉ sửa triggers.py.
+Heartbeat và backoff còn ở các chỗ TODO; điều kiện gửi nằm riêng ở triggers.py.
 
 Kênh 1->2 (mode "sync") = ĐẨY NGAY, bản chính KHÔNG chờ xác nhận (đề: "tức thời").
 
@@ -41,7 +41,7 @@ STATE_UNKNOWN = "UNKNOWN"
 STATE_OK = "OK"
 STATE_LAGGING = "LAGGING"     # đích tụt / từ chối tạm thời
 STATE_DOWN = "DOWN"           # không gọi được đích
-STATE_DIVERGED = "DIVERGED"   # đầu chuỗi hai bên không khớp — cần phục hồi (TV4), không tự gửi
+STATE_DIVERGED = "DIVERGED"   # đầu chuỗi hai bên không khớp — cần phục hồi (recovery.py), không tự gửi
 
 
 class ReplicationLink:
@@ -141,7 +141,7 @@ class ReplicationLink:
             try:
                 if self.acked_lsn < 0 or self.state == STATE_DIVERGED:
                     self._send([])                      # thăm dò
-                # TODO(TV2): HEARTBEAT — ~1s không liên lạc (self._last_contact) thì gửi Append rỗng,
+                # TODO: HEARTBEAT — ~1s không liên lạc (self._last_contact) thì gửi Append rỗng,
                 #   để phát hiện đích sập / đích mất dữ liệu ngay cả khi không có ghi mới.
                 if self.state == STATE_DIVERGED:
                     continue
@@ -153,7 +153,7 @@ class ReplicationLink:
                     self._flush()
             except grpc.RpcError as exc:
                 self._on_rpc_error(exc)
-                # TODO(TV2): backoff tăng dần 0.5 -> 1 -> 2 -> tối đa 5s, về 0.5s khi gọi thành công.
+                # TODO: backoff tăng dần 0.5 -> 1 -> 2 -> tối đa 5s, về 0.5s khi gọi thành công.
                 self._stop.wait(self.retry_delay)
 
     def _flush(self) -> None:

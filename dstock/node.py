@@ -1,7 +1,5 @@
 """Một node = 1 tiến trình: server gRPC + NodeStore + các kênh nhân bản đi ra
-+ theo dõi thành viên (membership, TV2) + nâng bản chính thủ công (failover, TV1).
-
-Chủ sở hữu: TV1.
++ theo dõi thành viên (membership.py) + nâng bản chính thủ công (failover.py).
 
     python -m dstock.node --id N1
     python -m dstock.node --id N3 --config cluster.toml
@@ -44,7 +42,7 @@ class Node:
         self.membership = MembershipMonitor(self)
         self._channels: dict[str, grpc.Channel] = {}
         self._links_lock = threading.Lock()
-        # Giữ khóa này khi đổi epoch / primary / members trong meta (failover của TV1, nhận lại node của TV2)
+        # Giữ khóa này khi đổi epoch / primary / members trong meta (failover.py hạ cấp, membership.py nhận lại node)
         self.role_lock = threading.RLock()
         self.links: list[ReplicationLink] = []
         self.stopping = threading.Event()        # bật khi node đang dừng — mọi vòng nền phải thoát
@@ -100,7 +98,7 @@ class Node:
         """Chạy `target` ở thread nền DO NODE QUẢN LÝ. Vòng lặp trong target phải kiểm tra
         `node.stopping` (vd: `while not node.stopping.wait(0.5): ...`). stop() chờ các thread này
         thoát rồi mới đóng kênh gRPC — đóng kênh khi thread khác đang gọi qua nó có thể làm treo
-        cả tiến trình. TV2 (PING) và TV4 (phục hồi, scrub) PHẢI dùng hàm này."""
+        cả tiến trình. PING (membership.py) và phục hồi, scrub (recovery.py) PHẢI dùng hàm này."""
         t = threading.Thread(target=target, name=f"{self.id} {name}", daemon=True)
         self._threads.append(t)
         t.start()
@@ -108,17 +106,17 @@ class Node:
 
     # ------------------------------------------------------------------ điểm móc thành viên
     def has_quorum(self) -> bool:
-        """TV2 — dstock/membership.py."""
+        """Xem dstock/membership.py."""
         return self.membership.has_quorum()
 
     def on_peer_status(self, nid: str, status: pb.NodeStatus) -> None:
-        """Membership (TV2) gọi sau mỗi PING thành công."""
+        """Membership gọi sau mỗi PING thành công."""
         self.membership.record_seen(nid)
-        failover.on_peer_status(self, nid, status)     # TV1: bản chính cũ tự hạ cấp
-        self.membership.readmit(nid, status)           # TV2: nhận lại node quay về
+        failover.on_peer_status(self, nid, status)     # bản chính cũ tự hạ cấp
+        self.membership.readmit(nid, status)           # nhận lại node quay về
 
     def promote(self, exclude: list[str]) -> None:
-        """TV1 — dstock/failover.py."""
+        """Xem dstock/failover.py."""
         failover.promote(self, exclude)
 
     # ------------------------------------------------------------------ kênh tới node khác
@@ -202,7 +200,7 @@ class Node:
 
         Có bản sao ĐI TRƯỚC (last_lsn lớn hơn) => bản chính đã mất dữ liệu (mất đuôi / mất file —
         chuỗi hash của phần còn lại vẫn hợp lệ nên store.open() không tự thấy) => CORRUPT, từ chối
-        ghi cho tới khi phục hồi (TV4). Nếu không cấp lại một LSN mà bản sao đã có.
+        ghi cho tới khi phục hồi (recovery.py). Nếu không cấp lại một LSN mà bản sao đã có.
         Không liên lạc được bản sao nào (vd: khởi động cả cụm) thì vẫn chạy; kênh nhân bản sẽ kiểm
         tra lại đầu chuỗi ở lần liên lạc đầu tiên (ReplicationLink._check_head).
         """
@@ -223,7 +221,7 @@ class Node:
             t.start()
         for t in threads:
             t.join(timeout=1.0)
-        # Cho failover (TV1) xem trước: có node khác là bản chính với epoch LỚN HƠN => mình là bản
+        # Cho failover xem trước: có node khác là bản chính với epoch LỚN HƠN => mình là bản
         # chính CŨ, phải tự hạ cấp (chứ không phải "mất dữ liệu").
         for nid, st in sorted(results.items()):
             self.on_peer_status(nid, st)

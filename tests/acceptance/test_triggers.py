@@ -1,4 +1,4 @@
-"""TV3 — Kích hoạt INTERVAL (N1→N3 sau n giây) và COUNT (N2→N4 sau n lần), đổi n lúc chạy.  Mốc M2.
+"""Kích hoạt INTERVAL (N1→N3 sau n giây) và COUNT (N2→N4 sau n lần), đổi n lúc chạy.
 
 Ngữ nghĩa đã chốt: interval = mỗi cập nhật tới N3 khoảng n giây sau khi ghi ở N1 (tính từ entry
 chờ CŨ NHẤT), không phải "n giây kể từ lần gửi trước". Xem dstock/replication/triggers.py.
@@ -11,7 +11,7 @@ import pytest
 from dstock.replication.triggers import CountTrigger, IntervalTrigger
 from harness import SPEC_LINKS
 
-pytestmark = pytest.mark.todo("TV3")
+pytestmark = pytest.mark.todo
 
 
 # ---------------------------------------------------------------- unit (không cần mạng)
@@ -65,7 +65,7 @@ def test_ranh_lau_roi_ghi_van_phai_cho_n_giay(make_cluster):
     assert 0.8 <= time.perf_counter() - t0 <= 1.6
 
 
-@pytest.mark.todo("TV3", optional=True)
+@pytest.mark.todo(optional=True)
 def test_N3_cap_nhat_theo_chu_ky_n_giay(make_cluster):
     """Ghi liên tục 3.5s; N3 chỉ thay đổi theo từng đợt cách nhau >= n giây, và bắt kịp trong ~n giây."""
     c = make_cluster(links=SPEC_LINKS)     # interval n = 1s

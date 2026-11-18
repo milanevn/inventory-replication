@@ -1,7 +1,5 @@
 """Nghiệp vụ nhập – xuất – tồn. Thuần Python, không biết gì về mạng hay CSDL.
 
-Chủ sở hữu: TV1.
-
 - `Inventory` là trạng thái (danh mục sản phẩm + bảng tồn) — được TÍNH RA từ nhật ký thay đổi,
   không phải nguồn sự thật.
 - `validate()` chỉ chạy ở bản chính trước khi cấp LSN.

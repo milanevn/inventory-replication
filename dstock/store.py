@@ -1,7 +1,5 @@
 """NodeStore — trạng thái của MỘT node: nhật ký thay đổi (SQLite) + trạng thái (RAM) + chỉ mục.
 
-Chủ sở hữu: TV1.
-
 Hai đường ghi duy nhất:
   - write()            : chỉ bản chính. Kiểm tra nghiệp vụ -> cấp LSN -> ghi oplog -> áp dụng.
   - apply_replicated() : bản sao. Nhận entry đã có LSN từ nguồn -> kiểm tra thứ tự + hash -> ghi + áp dụng.
@@ -68,7 +66,7 @@ class NodeStore:
         (khắc phục lùi dựa trên thao tác).
 
         - change_log hỏng: giữ phần tốt phía trước, đánh dấu CORRUPT và từ chối ghi. Việc kéo
-          phần còn thiếu là của TV4 (dstock/recovery.py).
+          phần còn thiếu nằm ở dstock/recovery.py.
         - change_log tốt nhưng bảng dẫn xuất (ton_kho, san_pham) LỆCH nhật ký (vd: ai đó sửa tay
           số tồn): nhật ký là nguồn sự thật => dựng lại bảng từ nhật ký (khắc phục tiến), ghi log.
         """
@@ -172,7 +170,7 @@ class NodeStore:
     def _head_hash(self) -> str:
         return self.oplog.last_hash if self.oplog.entries else ""
 
-    # ------------------------------------------------------------------ phục hồi (TV4 dùng)
+    # ------------------------------------------------------------------ phục hồi (recovery.py dùng)
     def replace_log(self, entries: list[Entry]) -> None:
         """Thay toàn bộ oplog bằng `entries` đã kiểm chuỗi, dựng lại trạng thái, health -> OK."""
         with self.lock:
