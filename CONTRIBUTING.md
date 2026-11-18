@@ -4,31 +4,41 @@
 
 `main` lúc nào cũng phải chạy được và test xanh. Không ai push thẳng lên `main`; mọi thay đổi vào qua pull request.
 
-Mỗi việc làm trên một nhánh tách từ `main`, đặt tên theo mẫu `<loại>/<phạm-vi>-<mô-tả-ngắn>`:
+Mỗi module có một nhánh riêng, đặt đúng tên module, dùng suốt đồ án. Merge vào `main` xong thì không xóa, làm tiếp trên nhánh đó.
 
-- viết thường, không dấu, các từ nối bằng dấu gạch ngang;
-- có issue thì thêm số issue sau loại, ví dụ `feat/12-membership-ping`;
-- phạm vi nên trùng tên module: `membership`, `failover`, `triggers`, `client`, `recovery`, `faults`, `gui`, `cli`, `link`, `store`, `proto`, `docs`.
+| Nhánh | Phần việc |
+|---|---|
+| `failover` | nâng bản chính, epoch, chặn bản chính cũ (TV1) |
+| `membership` | PING, đa số, nhận lại node, heartbeat trong `link.py` (TV2) |
+| `triggers` | gửi sau n giây, sau n lần (TV3) |
+| `client` | chế độ chỉ đọc khi mất bản chính (TV3) |
+| `recovery` | phục hồi khi dữ liệu tổn hại (TV4) |
+| `faults` | gây lỗi mạng (TV5) |
+| `gui` | bảng điều khiển (TV5) |
+| `docs` | tài liệu |
 
-| Loại | Dùng khi | Ví dụ |
-|---|---|---|
-| `feat` | thêm chức năng | `feat/membership-ping-quorum` |
-| `fix` | sửa lỗi | `fix/link-heartbeat-timeout` |
-| `test` | chỉ thêm hoặc sửa test | `test/recovery-mat-duoi-nhat-ky` |
-| `docs` | tài liệu, báo cáo | `docs/operations-lan` |
-| `refactor` | sửa cấu trúc code, không đổi hành vi | `refactor/store-tach-meta` |
-| `chore` | cấu hình, CI, script | `chore/ci-cache-pip` |
+Phần việc của module cần sửa sang file khác thì vẫn làm trên nhánh của module đó.
 
-Nhánh nên sống ngắn, vài ngày là merge, merge xong thì xóa. Trước khi mở PR, rebase lên `main` mới nhất:
+Tạo nhánh lần đầu:
 
 ```bash
 git switch main && git pull
-git switch -c feat/triggers-interval-count
+git switch -c membership
+git push -u origin membership
+```
+
+Những lần sau:
+
+```bash
+git switch membership
 # code, commit
 git fetch origin
-git rebase origin/main
-git push -u origin feat/triggers-interval-count
+git merge origin/main          # lấy phần người khác đã merge, sửa xung đột nếu có
+pytest
+git push
 ```
+
+Nên merge `main` vào nhánh của mình ít nhất mỗi tuần và luôn trước khi mở PR, để nhánh không lệch xa `main`. Dùng `git merge`, không dùng `git rebase` trên nhánh đã push.
 
 ## Commit
 
@@ -41,12 +51,12 @@ test(recovery): thêm ca bản chính mất đuôi nhật ký
 docs(operations): thêm cách mở firewall trên LAN
 ```
 
-PR được merge kiểu squash, nên tiêu đề PR sẽ thành commit trên `main`. Đặt tiêu đề PR theo đúng mẫu trên.
+PR được merge bằng merge commit, nên mọi commit trên nhánh đều đi vào lịch sử của `main`. Vì vậy commit nào cũng phải theo mẫu trên, và tiêu đề PR cũng vậy.
 
 ## Pull request
 
 1. Chạy `pytest` trên máy mình, toàn bộ phải xanh. CI sẽ chạy lại `pytest` trên GitHub.
-2. Mở PR vào `main` và điền mẫu PR.
+2. Mở PR từ nhánh module vào `main` và điền mẫu PR. Xong một phần là mở PR, không đợi làm hết module.
 3. Cần một người khác duyệt. Không tự duyệt PR của mình.
 4. CI đỏ thì không merge.
 5. Giữ PR nhỏ, khoảng dưới 300 dòng thay đổi. Việc lớn thì chia thành nhiều PR.
@@ -89,8 +99,7 @@ Viết test mới thì dùng fixture `make_cluster` (`tests/harness.py`). Fixtur
 ## Cài đặt GitHub (làm một lần)
 
 - Branch protection cho `main`: bật "Require a pull request before merging" với 1 approval, và "Require status checks to pass" với job `test`.
-- Settings, General: chỉ bật "Allow squash merging", bật "Automatically delete head branches".
-- Xong mỗi mốc thì gắn tag trên `main` (`m1`, `m2`, ...) để quay lại được bản demo của mốc đó.
+- Settings, General: chỉ bật "Allow merge commits", tắt "Automatically delete head branches" để nhánh module không bị xóa sau khi merge.
 
 ## Trên Windows
 
