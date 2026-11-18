@@ -32,7 +32,7 @@ def parse_lines(items: list[str]) -> list[Line]:
     return out
 
 
-class DStockClient:
+class ClusterClient:
     def __init__(self, cfg: ClusterConfig, timeout: float = 2.0):
         self.cfg = cfg
         self.timeout = timeout

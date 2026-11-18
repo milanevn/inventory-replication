@@ -1,5 +1,5 @@
 // =============================================================================
-// DStock — HỢP ĐỒNG GIAO TIẾP giữa client, các node và bảng điều khiển.
+// HỢP ĐỒNG GIAO TIẾP giữa client, các node và bảng điều khiển.
 //
 // Đây là file quan trọng nhất của repo: mọi người code theo nó.
 // Muốn đổi file này => mở PR riêng, gắn nhãn "contract", báo cả nhóm.

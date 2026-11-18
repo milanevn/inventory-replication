@@ -19,7 +19,7 @@ from tkinter import messagebox, ttk
 
 import grpc
 
-from ..client import DStockClient, parse_lines
+from ..client import ClusterClient, parse_lines
 from ..config import ClusterConfig, load_config
 
 POLL_SEC = 0.5
@@ -80,12 +80,12 @@ class Dashboard:
     def __init__(self, root: tk.Tk, cfg: ClusterConfig):
         self.root = root
         self.cfg = cfg
-        self.client = DStockClient(cfg, timeout=1.0)
+        self.client = ClusterClient(cfg, timeout=1.0)
         self.q: queue.Queue = queue.Queue()
         self._stop = threading.Event()
         self._last_health: dict[str, str] = {}
 
-        root.title("DStock — Bảng điều khiển cụm")
+        root.title("Bảng điều khiển cụm")
         try:
             root.state("zoomed")          # Windows: phóng to vừa màn hình (kể cả khi bật scale 125%)
         except tk.TclError:

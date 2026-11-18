@@ -14,7 +14,7 @@ import threading
 import grpc
 from typing import TYPE_CHECKING
 
-from .errors import DStockError
+from .errors import ClusterError
 from .faults import Rule
 from .rpc import dstock_pb2 as pb
 from .rpc import dstock_pb2_grpc as pbg
@@ -42,7 +42,7 @@ class InventoryService(pbg.InventoryServicer):
                                                  f"{node.members} — tạm từ chối ghi")
         try:
             entry, dup = node.store.write(voucher_from_pb(request))
-        except DStockError as exc:
+        except ClusterError as exc:
             return pb.WriteReply(ok=False, error=f"{exc.code}: {exc}", primary_hint=node.primary_id)
         # 1->2 "tức thời": KHÔNG chờ N2 xác nhận. Store đã báo các kênh (notify) — kênh sync đẩy ngay.
         log.info("[%s] ghi %s %s -> lsn %d%s", node.id, request.kind, request.code,
@@ -113,7 +113,7 @@ class AdminService(pbg.AdminServicer):
             self.node.promote(list(request.exclude))
         except NotImplementedError as exc:
             context.abort(grpc.StatusCode.UNIMPLEMENTED, str(exc))
-        except DStockError as exc:
+        except ClusterError as exc:
             context.abort(grpc.StatusCode.FAILED_PRECONDITION, f"{exc.code}: {exc}")
         return self.node.status()
 

@@ -1,5 +1,5 @@
 -- =============================================================================
--- DStock — schema CSDL của MỖI node (SQLite, file data/<node>/dstock.db)
+-- Schema CSDL của MỖI node (SQLite, file data/<node>/dstock.db)
 --
 -- change_log  : NGUỒN SỰ THẬT. Nhật ký thay đổi theo thao tác nghiệp vụ, lsn tăng dần,
 --               có chuỗi hash (prev_hash -> hash) để phát hiện dữ liệu bị tổn hại.

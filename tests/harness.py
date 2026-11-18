@@ -19,7 +19,7 @@ import time
 from pathlib import Path
 from typing import Callable
 
-from dstock.client import DStockClient, parse_lines
+from dstock.client import ClusterClient, parse_lines
 from dstock.config import ClusterConfig, parse_config
 from dstock.node import Node
 
@@ -74,7 +74,7 @@ class Cluster:
         }
         self.cfg: ClusterConfig = parse_config(raw)
         self.nodes: dict[str, Node] = {}
-        self.client = DStockClient(self.cfg, timeout=3.0)
+        self.client = ClusterClient(self.cfg, timeout=3.0)
 
     # ---- vòng đời -----------------------------------------------------------
     def start(self, *ids: str) -> "Cluster":

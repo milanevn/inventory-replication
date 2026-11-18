@@ -1,4 +1,4 @@
-# Cấu hình cụm DStock — CÁCH B: mỗi máy chạy MỘT node (demo LAN). Cả 5 máy dùng CHUNG file này.
+# Cấu hình cụm — CÁCH B: mỗi máy chạy MỘT node (demo LAN). Cả 5 máy dùng CHUNG file này.
 #
 #   Máy chạy N2:   python -m dstock.node --id N2 --config cluster.lan.toml
 #   Máy client:    python -m dstock.gui --config cluster.lan.toml

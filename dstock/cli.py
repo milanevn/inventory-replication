@@ -21,7 +21,7 @@ import sys
 
 import grpc
 
-from .client import DStockClient, parse_lines
+from .client import ClusterClient, parse_lines
 from .config import load_config
 
 
@@ -37,7 +37,7 @@ def _print_write(r) -> None:
 def main(argv: list[str] | None = None) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    ap = argparse.ArgumentParser(prog="dstock.cli", description="Điều khiển cụm DStock")
+    ap = argparse.ArgumentParser(prog="dstock.cli", description="Điều khiển cụm")
     ap.add_argument("--config", default="cluster.toml")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -60,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
 
     args = ap.parse_args(argv)
     cfg = load_config(args.config)
-    c = DStockClient(cfg)
+    c = ClusterClient(cfg)
     try:
         if args.cmd in ("nhap", "xuat"):
             _print_write(c.write(args.cmd.upper(), args.code, parse_lines(args.lines), args.note))

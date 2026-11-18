@@ -1,4 +1,4 @@
-# DStock
+# inventory-replication
 
 Đồ án môn Các hệ thống phân tán, đề tài 8: xây dựng ứng dụng cập nhật lan truyền với dữ liệu là quản lý nhập - xuất - tồn hàng hóa.
 

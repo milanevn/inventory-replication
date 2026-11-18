@@ -1,4 +1,4 @@
-"""Một node DStock = 1 tiến trình: server gRPC + NodeStore + các kênh nhân bản đi ra
+"""Một node = 1 tiến trình: server gRPC + NodeStore + các kênh nhân bản đi ra
 + theo dõi thành viên (membership, TV2) + nâng bản chính thủ công (failover, TV1).
 
 Chủ sở hữu: TV1.
@@ -248,7 +248,7 @@ def setup_logging(node_id: str = "", level: int = logging.INFO) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    ap = argparse.ArgumentParser(description="Chạy một node DStock")
+    ap = argparse.ArgumentParser(description="Chạy một node")
     ap.add_argument("--id", required=True, help="N1 | N2 | N3 | N4")
     ap.add_argument("--config", default="cluster.toml")
     ap.add_argument("--debug", action="store_true")

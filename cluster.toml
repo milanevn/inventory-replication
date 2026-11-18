@@ -1,4 +1,4 @@
-# Cấu hình cụm DStock — đề tài 8.  CÁCH A: cả cụm chạy trên MỘT máy (phát triển, test, video).
+# Cấu hình cụm — đề tài 8.  CÁCH A: cả cụm chạy trên MỘT máy (phát triển, test, video).
 # Cách B (mỗi máy một node, demo LAN): dùng cluster.lan.toml.
 #
 #   Client ⇄ N1 ──sync (tức thời)──▶ N2 ──count (sau n lần)──▶ N4

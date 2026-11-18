@@ -20,7 +20,7 @@ python scripts/stop_cluster.py
 2. Cả nhóm vào cùng một mạng riêng, ví dụ wifi phát từ điện thoại của một thành viên, không dùng wifi trường hay quán. Trên mỗi máy đặt mạng đó là Private: Settings, Network & internet, Wi-Fi, chọn mạng đang dùng, Network profile type chọn Private.
 3. Mở firewall cho cổng của node trên máy đó, chỉ cho máy cùng mạng riêng kết nối. Ví dụ máy chạy N2 (PowerShell quyền admin):
    ```powershell
-   New-NetFirewallRule -DisplayName "DStock 7002" -Direction Inbound -Protocol TCP -LocalPort 7002 -Action Allow -Profile Private -RemoteAddress LocalSubnet
+   New-NetFirewallRule -DisplayName "inventory-replication 7002" -Direction Inbound -Protocol TCP -LocalPort 7002 -Action Allow -Profile Private -RemoteAddress LocalSubnet
    ```
 4. Trên máy chạy N2:
    ```bash
@@ -33,7 +33,7 @@ python scripts/stop_cluster.py
    ```
 6. Demo xong thì xóa luật firewall:
    ```powershell
-   Remove-NetFirewallRule -DisplayName "DStock 7002"
+   Remove-NetFirewallRule -DisplayName "inventory-replication 7002"
    ```
 
 Các node không xác thực người gọi và không mã hóa kết nối. Ai vào được cổng của node là tắt node, đổi bản chính, đọc hay chèn dữ liệu được, nên chỉ mở cổng trong mạng riêng của nhóm như trên.

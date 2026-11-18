@@ -8,7 +8,7 @@ import json
 import grpc
 import pytest
 
-from dstock.client import DStockClient
+from dstock.client import ClusterClient
 from dstock.domain import Line
 from dstock.rpc import dstock_pb2 as pb
 from harness import wait_until
@@ -59,7 +59,7 @@ def test_client_moi_tu_tim_ra_ban_chinh_moi(make_cluster):
     c.stop("N1")
     c.stop("N2")
     _nang(c, "N3", ["N1", "N2"])
-    fresh = DStockClient(c.cfg, timeout=2)                  # vẫn tưởng bản chính là N1
+    fresh = ClusterClient(c.cfg, timeout=2)                  # vẫn tưởng bản chính là N1
     try:
         assert fresh.nhap("PN-x", [Line("SP01", 1)]).ok
         assert fresh.primary == "N3"
