@@ -1,0 +1,178 @@
+// =============================================================================
+// DStock — HỢP ĐỒNG GIAO TIẾP giữa client, các node và bảng điều khiển.
+//
+// Đây là file quan trọng nhất của repo: mọi người code theo nó.
+// Muốn đổi file này => mở PR riêng, gắn nhãn "contract", báo cả nhóm.
+// Sau khi sửa: chạy  python scripts/gen_proto.py  rồi commit cả file sinh ra.
+//
+// Quy ước tương thích: chỉ THÊM field mới (số thứ tự mới), không đổi/xóa field cũ.
+// =============================================================================
+syntax = "proto3";
+
+package dstock;
+
+message Empty {}
+
+// ---------------------------------------------------------------------------
+// Dữ liệu nghiệp vụ
+// ---------------------------------------------------------------------------
+
+// Một dòng hàng trên phiếu.
+message Line {
+  string sku = 1;   // mã hàng, ví dụ "SP01"
+  int64  qty = 2;   // số lượng > 0
+}
+
+// Thao tác ghi do client gửi lên BẢN CHÍNH:
+//   kind = "SANPHAM": khai báo / sửa sản phẩm — code = mã hàng, product_name, unit; lines rỗng
+//   kind = "NHAP" | "XUAT": phiếu — code = số phiếu (duy nhất), lines = các dòng hàng.
+//     Nhập mã chưa khai báo thì sản phẩm được tự tạo (tên = mã).
+message Voucher {
+  string req_id = 1;          // client tự sinh (uuid) — chống ghi trùng khi gửi lại
+  string kind   = 2;          // "SANPHAM" | "NHAP" | "XUAT"
+  string code   = 3;          // số phiếu, ví dụ "PN001" (SANPHAM: mã hàng)
+  repeated Line lines = 4;
+  string note   = 5;
+  string product_name = 6;    // SANPHAM: tên hàng
+  string unit         = 7;    // SANPHAM: đơn vị tính
+}
+
+// Một bản ghi trong oplog — ĐƠN VỊ LAN TRUYỀN giữa các node.
+// Mọi node giữ tiền tố của cùng một dãy Entry, đánh số bằng lsn.
+message Entry {
+  int64  lsn       = 1;       // số thứ tự toàn cục, do N1 cấp, bắt đầu từ 1
+  string req_id    = 2;
+  string kind      = 3;
+  string code      = 4;
+  repeated Line lines = 5;
+  string note      = 6;
+  double ts        = 7;       // thời điểm N1 ghi (epoch giây) — chỉ để hiển thị
+  string prev_hash = 8;       // hash của entry lsn-1 (entry đầu: 64 số 0)
+  string hash      = 9;       // sha256 của các field còn lại (xem dstock/oplog.py)
+  string product_name = 10;   // SANPHAM
+  string unit      = 11;      // SANPHAM
+  int64  epoch     = 12;      // nhiệm kỳ của bản chính đã cấp entry này
+}
+
+// ---------------------------------------------------------------------------
+// Inventory — client gọi. Chỉ BẢN CHÍNH nhận Write (mặc định N1; sau khi nâng thủ công có
+// thể là node khác), và chỉ khi nó thấy ĐA SỐ thành viên (>= floor(m/2)+1, tính cả mình).
+// ---------------------------------------------------------------------------
+service Inventory {
+  rpc Write(Voucher) returns (WriteReply);
+  rpc GetStock(StockQuery) returns (StockReply);   // node nào cũng trả lời được
+}
+
+message WriteReply {
+  bool   ok              = 1;
+  int64  lsn             = 2;   // lsn được cấp (hoặc lsn cũ nếu req_id trùng)
+  string error           = 3;   // NOT_PRIMARY | NO_QUORUM | INVALID | INSUFFICIENT_STOCK | NODE_CORRUPT
+  bool   replicated_sync = 4;   // KHÔNG DÙNG (bỏ bán đồng bộ — 1→2 đẩy ngay, không chờ xác nhận)
+  bool   duplicate       = 5;   // true nếu req_id đã từng ghi
+  string primary_hint    = 6;   // NOT_PRIMARY: node mà máy này biết là bản chính hiện tại
+}
+
+message StockQuery {
+  repeated string skus = 1;     // rỗng = tất cả
+}
+
+message StockReply {
+  string node_id = 1;
+  int64  lsn     = 2;           // dữ liệu này phản ánh oplog đến lsn nào
+  map<string, int64> stock = 3;
+  double last_apply_ts = 4;     // ts của entry mới nhất đã áp dụng — để tính độ cũ
+  string health  = 5;           // OK | CORRUPT | RECOVERING — CORRUPT thì số liệu có thể THIẾU
+}
+
+// ---------------------------------------------------------------------------
+// Replication — node gọi node. Lan truyền kiểu PUSH: nguồn gọi Append của đích.
+// ---------------------------------------------------------------------------
+service Replication {
+  // Nguồn đẩy một lô entry liên tiếp. entries rỗng = thăm dò (hỏi last_lsn của đích).
+  // Đích: bỏ qua entry đã có, áp dụng entry lsn == last+1, dừng khi gặp lỗ hổng.
+  // Luôn trả (last_lsn, last_hash) hiện tại => nguồn đặt lại con trỏ và gửi tiếp từ đó,
+  // đồng thời KIỂM TRA ĐẦU CHUỖI: đích đi trước nguồn hoặc hash khác => phân kỳ (DIVERGED).
+  rpc Append(AppendRequest) returns (AppendReply);
+
+  // Kéo phần còn thiếu (dùng khi PHỤC HỒI: chọn nguồn có last_lsn LỚN NHẤT, kiểm chuỗi).
+  rpc FetchSince(FetchRequest) returns (stream Entry);
+}
+
+message AppendRequest {
+  string from_node = 1;
+  repeated Entry entries = 2;
+  int64  epoch = 3;             // nhiệm kỳ của nguồn — đích có epoch lớn hơn thì từ chối (STALE_EPOCH)
+}
+
+message AppendReply {
+  bool   ok       = 1;
+  int64  last_lsn = 2;
+  string error    = 3;          // GAP | HASH_MISMATCH | DIVERGED | NODE_CORRUPT | STALE_EPOCH
+  string last_hash = 4;         // hash của entry last_lsn của đích (rỗng nếu last_lsn = 0)
+  int64  epoch     = 5;         // nhiệm kỳ đích đang biết
+}
+
+message FetchRequest {
+  string requester = 1;
+  int64  after_lsn = 2;
+}
+
+// ---------------------------------------------------------------------------
+// Admin — bảng điều khiển (GUI) và CLI gọi để quan sát / điều khiển / gây lỗi.
+// ---------------------------------------------------------------------------
+service Admin {
+  rpc Status(Empty) returns (NodeStatus);
+  rpc SetLinkParam(LinkParam) returns (LinkInfo);   // đổi n của kênh lúc đang chạy
+  rpc SetFault(FaultRule) returns (Empty);          // gây lỗi mạng trên kênh đi ra
+  rpc Crash(Empty) returns (Empty);                 // giết tiến trình node (demo sập)
+  // NÂNG THỦ CÔNG node nhận lời gọi lên làm bản chính (người quản trị xác nhận các node trong
+  // `exclude` đã chết thật). Tăng epoch, thành viên mới = mọi node trừ exclude.
+  rpc Promote(PromoteRequest) returns (NodeStatus);
+}
+
+message PromoteRequest {
+  repeated string exclude = 1;  // các node bị loại khỏi cụm (đã chết), vd ["N1", "N2"]
+}
+
+message NodeStatus {
+  string node_id      = 1;
+  string role         = 2;      // PRIMARY | REPLICA
+  string health       = 3;      // OK | CORRUPT | RECOVERING
+  int64  last_lsn     = 4;
+  string last_hash    = 5;
+  string state_digest = 6;      // sha256 của bảng tồn — so 2 node có cùng dữ liệu không
+  map<string, int64> stock = 7;
+  repeated LinkInfo links = 8;  // các kênh ĐI RA từ node này
+  double last_apply_ts = 9;
+  string detail       = 10;     // mô tả thêm (lý do CORRUPT, ...)
+  int64  epoch        = 11;     // nhiệm kỳ hiện tại (tăng mỗi lần nâng bản chính)
+  string primary_id   = 12;     // node mà máy này biết là bản chính
+  bool   has_quorum   = 13;     // (bản chính) đang thấy đa số thành viên => được nhận ghi
+  repeated string members = 14; // thành viên cụm hiện tại (đa số tính trên danh sách này)
+  map<string, string> products = 15;  // mã hàng -> "tên|đơn vị"
+}
+
+message LinkInfo {
+  string from_node   = 1;
+  string to_node     = 2;
+  string mode        = 3;       // sync | interval | count
+  double param       = 4;       // timeout_ms (sync) | n giây (interval) | n lần (count)
+  int64  acked_lsn   = 5;       // đích đã xác nhận tới lsn nào (-1 = chưa biết)
+  int64  pending     = 6;       // số entry đang chờ gửi (-1 = chưa biết)
+  string state       = 7;       // UNKNOWN | OK | LAGGING | DOWN | DIVERGED
+  double last_flush_ts = 8;
+  string fault       = 9;       // mô tả lỗi đang gây trên kênh (rỗng = không)
+  string detail      = 10;      // lý do của trạng thái hiện tại (lỗi gRPC, lý do phân kỳ...)
+}
+
+message LinkParam {
+  string to_node = 1;
+  double param   = 2;
+}
+
+message FaultRule {
+  string to_node   = 1;         // kênh từ node này tới to_node; "*" = mọi kênh
+  double drop_rate = 2;         // 0..1 — tỉ lệ lời gọi bị bỏ
+  int32  delay_ms  = 3;         // trễ thêm mỗi lời gọi
+  bool   partition = 4;         // true = cắt hẳn
+}

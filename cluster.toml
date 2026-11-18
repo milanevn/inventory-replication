@@ -1,0 +1,54 @@
+# Cấu hình cụm DStock — đề tài 8.  CÁCH A: cả cụm chạy trên MỘT máy (phát triển, test, video).
+# Cách B (mỗi máy một node, demo LAN): dùng cluster.lan.toml.
+#
+#   Client ⇄ N1 ──sync (tức thời)──▶ N2 ──count (sau n lần)──▶ N4
+#             └──interval (sau n giây)──▶ N3
+#
+
+primary = "N1"
+data_dir = "data"            # mỗi node ghi vào data/<id>/
+snapshot_every = 50          # TV4: tạo checkpoint sau mỗi n entry (chưa dùng ở M0)
+
+[nodes.N1]
+host = "127.0.0.1"
+port = 7001
+
+[nodes.N2]
+host = "127.0.0.1"
+port = 7002
+
+[nodes.N3]
+host = "127.0.0.1"
+port = 7003
+
+[nodes.N4]
+host = "127.0.0.1"
+port = 7004
+
+# param: interval = n giây, count = n lần. Kênh sync đẩy ngay, không chờ xác nhận, nên không có param.
+[[links]]
+from = "N1"
+to = "N2"
+mode = "sync"
+
+[[links]]
+from = "N1"
+to = "N3"
+mode = "interval"
+param = 5
+
+[[links]]
+from = "N2"
+to = "N4"
+mode = "count"
+param = 3
+
+# Nguồn để node kéo dữ liệu khi PHỤC HỒI (TV4) — đi THEO CHIỀU CẠNH của sơ đồ đề:
+#   N2, N3 kéo từ N1; N4 CHỈ kéo từ N2 (đề: s4 chỉ nhận dữ liệu từ s2).
+#   Riêng bản chính N1 kéo từ bản sao có last_lsn LỚN NHẤT (1->2 không chờ xác nhận nên N2 có
+#   thể thiếu so với N3). Chọn nguồn OK có last_lsn lớn nhất; hòa thì theo thứ tự danh sách.
+[recovery_sources]
+N1 = ["N2", "N3", "N4"]
+N2 = ["N1"]
+N3 = ["N1"]
+N4 = ["N2"]
