@@ -4,7 +4,7 @@
 #   Máy client:    python -m dstock.gui --config cluster.lan.toml
 #
 # Trước khi demo: đổi host thành IP thật (ipconfig), mở firewall Windows cho cổng của node
-# (xem README mục "Chạy nhiều máy"), rồi `python -m dstock.cli --config cluster.lan.toml status`
+# chỉ trong mạng riêng của nhóm (xem docs/operations.md), rồi `python -m dstock.cli --config cluster.lan.toml status`
 # phải thấy đủ 4 node.
 #
 #   Client ⇄ N1 ──sync (tức thời)──▶ N2 ──count (sau n lần)──▶ N4

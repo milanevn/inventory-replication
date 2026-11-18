@@ -17,19 +17,26 @@ python scripts/stop_cluster.py
 ## Chạy mỗi máy một node
 
 1. Sửa `cluster.lan.toml`: đặt `host` là IP thật của từng máy (xem bằng `ipconfig`). Cả nhóm dùng chung một file này.
-2. Mở firewall cho cổng của node trên máy đó, ví dụ máy chạy N2 (PowerShell quyền admin):
+2. Cả nhóm vào cùng một mạng riêng, ví dụ wifi phát từ điện thoại của một thành viên, không dùng wifi trường hay quán. Trên mỗi máy đặt mạng đó là Private: Settings, Network & internet, Wi-Fi, chọn mạng đang dùng, Network profile type chọn Private.
+3. Mở firewall cho cổng của node trên máy đó, chỉ cho máy cùng mạng riêng kết nối. Ví dụ máy chạy N2 (PowerShell quyền admin):
    ```powershell
-   New-NetFirewallRule -DisplayName "DStock 7002" -Direction Inbound -Protocol TCP -LocalPort 7002 -Action Allow
+   New-NetFirewallRule -DisplayName "DStock 7002" -Direction Inbound -Protocol TCP -LocalPort 7002 -Action Allow -Profile Private -RemoteAddress LocalSubnet
    ```
-3. Trên máy chạy N2:
+4. Trên máy chạy N2:
    ```bash
    python scripts/run_cluster.py N2 --config cluster.lan.toml
    ```
-4. Trên máy client:
+5. Trên máy client:
    ```bash
    python -m dstock.gui --config cluster.lan.toml
    python -m dstock.cli --config cluster.lan.toml status     # phải thấy đủ 4 node
    ```
+6. Demo xong thì xóa luật firewall:
+   ```powershell
+   Remove-NetFirewallRule -DisplayName "DStock 7002"
+   ```
+
+Các node không xác thực người gọi và không mã hóa kết nối. Ai vào được cổng của node là tắt node, đổi bản chính, đọc hay chèn dữ liệu được, nên chỉ mở cổng trong mạng riêng của nhóm như trên.
 
 ## Lệnh thường dùng
 
