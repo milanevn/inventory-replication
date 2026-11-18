@@ -7,3 +7,8 @@ data/
 .idea/
 .vscode/
 .DS_Store
+
+# ghi chú riêng cho Claude Code của từng người, không đưa lên repo
+CLAUDE.md
+CLAUDE.local.md
+.claude/
