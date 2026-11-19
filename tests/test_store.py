@@ -96,6 +96,16 @@ def test_entry_trung_lsn_khac_hash_la_phan_ky(primary, replica):
     assert replica.oplog.entries[0].hash == e.hash               # không bị ghi đè
 
 
+@pytest.mark.parametrize("lsn", [0, -1])
+def test_entry_lsn_khong_hop_le_bi_tu_choi(primary, replica, lsn):
+    from dataclasses import replace
+    e, _ = primary.write(voucher("a", "NHAP", ("SP01", 1)))
+    replica.apply_replicated([e])
+    r = replica.apply_replicated([replace(e, lsn=lsn).sealed()])
+    assert (r.last_lsn, r.error) == (1, "INVALID_ENTRY")
+    assert replica.stock() == {"SP01": 1}
+
+
 def test_req_id_rong_bi_tu_choi(primary):
     from dstock.errors import InvalidVoucher
     with pytest.raises(InvalidVoucher):

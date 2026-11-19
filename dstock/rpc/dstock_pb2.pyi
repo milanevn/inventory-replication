@@ -108,14 +108,18 @@ class StockReply(_message.Message):
     def __init__(self, node_id: _Optional[str] = ..., lsn: _Optional[int] = ..., stock: _Optional[_Mapping[str, int]] = ..., last_apply_ts: _Optional[float] = ..., health: _Optional[str] = ...) -> None: ...
 
 class AppendRequest(_message.Message):
-    __slots__ = ("from_node", "entries", "epoch")
+    __slots__ = ("from_node", "entries", "epoch", "primary_id", "members")
     FROM_NODE_FIELD_NUMBER: _ClassVar[int]
     ENTRIES_FIELD_NUMBER: _ClassVar[int]
     EPOCH_FIELD_NUMBER: _ClassVar[int]
+    PRIMARY_ID_FIELD_NUMBER: _ClassVar[int]
+    MEMBERS_FIELD_NUMBER: _ClassVar[int]
     from_node: str
     entries: _containers.RepeatedCompositeFieldContainer[Entry]
     epoch: int
-    def __init__(self, from_node: _Optional[str] = ..., entries: _Optional[_Iterable[_Union[Entry, _Mapping]]] = ..., epoch: _Optional[int] = ...) -> None: ...
+    primary_id: str
+    members: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, from_node: _Optional[str] = ..., entries: _Optional[_Iterable[_Union[Entry, _Mapping]]] = ..., epoch: _Optional[int] = ..., primary_id: _Optional[str] = ..., members: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class AppendReply(_message.Message):
     __slots__ = ("ok", "last_lsn", "error", "last_hash", "epoch")

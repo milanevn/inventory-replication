@@ -102,12 +102,16 @@ message AppendRequest {
   string from_node = 1;
   repeated Entry entries = 2;
   int64  epoch = 3;             // nhiệm kỳ của nguồn — đích có epoch lớn hơn thì từ chối (STALE_EPOCH)
+  // Vai trò mà nguồn đang biết trong nhiệm kỳ `epoch`. Nguồn có thể chỉ là node trung gian
+  // (N2 chuyển tiếp cho N4) nên đích lấy bản chính từ đây, không lấy từ from_node.
+  string primary_id = 4;
+  repeated string members = 5;
 }
 
 message AppendReply {
   bool   ok       = 1;
   int64  last_lsn = 2;
-  string error    = 3;          // GAP | HASH_MISMATCH | DIVERGED | NODE_CORRUPT | STALE_EPOCH
+  string error    = 3;          // GAP | HASH_MISMATCH | DIVERGED | NODE_CORRUPT | STALE_EPOCH | INVALID_ENTRY
   string last_hash = 4;         // hash của entry last_lsn của đích (rỗng nếu last_lsn = 0)
   int64  epoch     = 5;         // nhiệm kỳ đích đang biết
 }

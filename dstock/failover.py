@@ -44,7 +44,8 @@ Việc cần làm (TODO):
        (Entry.to_json) để người xem xét, rồi replace_log(nhật ký của bản chính mới);
     c. lưu epoch / primary / members mới vào meta, gọi node.apply_role() để thành bản sao.
   (Nhận lại node quay về cụm nằm ở membership.readmit().)
-  services.ReplicationService.Append: chặn bản chính cũ bằng STALE_EPOCH.
+  services.ReplicationService.Append: chặn bản chính cũ bằng STALE_EPOCH; nhận nhiệm kỳ mới
+  (epoch, primary_id, members gửi kèm trong AppendRequest).
   Test: tests/acceptance/test_failover.py
 """
 from __future__ import annotations

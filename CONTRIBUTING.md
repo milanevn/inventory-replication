@@ -80,7 +80,7 @@ Docstring đầu mỗi module và các comment `TODO` ghi rõ phần nào còn p
 ## Test
 
 ```bash
-pytest                         # test lõi, phải xanh (45 passed, 42 skipped)
+pytest                         # test lõi, phải xanh (47 passed, 43 skipped)
 pytest --run-todo -k triggers  # chỉ test chấp nhận của triggers
 pytest --run-optional          # thêm test của phần tùy chọn
 pytest -x -q tests/test_store.py::test_req_id_trung_khong_ghi_lai

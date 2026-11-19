@@ -50,6 +50,7 @@ class ReplicationLink:
         cfg: LinkConfig,
         store: NodeStore,
         stub,                       # dstock_pb2_grpc.ReplicationStub tới đích
+        role=None,                  # () -> (primary_id, members) mà nguồn đang biết, gửi kèm mỗi Append
         max_batch: int = 200,
         rpc_timeout: float = 1.0,
         retry_delay: float = 0.5,
@@ -57,6 +58,7 @@ class ReplicationLink:
         self.cfg = cfg
         self.store = store
         self.stub = stub
+        self.role = role
         self.trigger = make_trigger(cfg)
         self.max_batch = max_batch
         self.rpc_timeout = rpc_timeout
@@ -175,8 +177,9 @@ class ReplicationLink:
         self._pending_since = started if self.pending > 0 else None
 
     def _send(self, batch) -> None:
+        primary_id, members = self.role() if self.role else ("", [])
         req = pb.AppendRequest(from_node=self.cfg.src, entries=[entry_to_pb(e) for e in batch],
-                               epoch=self.store.epoch)
+                               epoch=self.store.epoch, primary_id=primary_id, members=members)
         reply = self.stub.Append(req, timeout=self.rpc_timeout)
         self._last_contact = time.monotonic()
         if not self._check_head(reply):

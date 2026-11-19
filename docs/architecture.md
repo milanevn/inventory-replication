@@ -81,6 +81,8 @@ Phía nhận (`NodeStore.apply_replicated`) xử lý từng entry:
 | Trường hợp | Xử lý |
 |---|---|
 | epoch của nguồn nhỏ hơn epoch của đích | trả `STALE_EPOCH`, không áp dụng |
+| epoch của nguồn lớn hơn epoch của đích | lưu epoch, `primary_id`, `members` gửi kèm rồi xét tiếp từng entry |
+| `lsn < 1` | trả `INVALID_ENTRY`, không áp dụng |
 | `lsn <= last` | đã có: cùng hash thì bỏ qua, khác hash thì `DIVERGED` |
 | `lsn == last + 1` | kiểm `prev_hash` và `hash`, ghi trong một transaction; sai thì `HASH_MISMATCH` |
 | `lsn > last + 1` | trả `GAP` cùng `last_lsn` để nguồn gửi lại từ đó |
@@ -134,7 +136,7 @@ File `proto/dstock.proto`:
 | Service | RPC | Ai gọi |
 |---|---|---|
 | `Inventory` | `Write`, `GetStock` | CLI, GUI |
-| `Replication` | `Append` (đẩy một lô entry, lô rỗng để hỏi thăm), `FetchSince` (stream, dùng khi phục hồi và hạ cấp) | node với node |
+| `Replication` | `Append` (đẩy một lô entry kèm epoch và vai trò nguồn đang biết, lô rỗng để hỏi thăm), `FetchSince` (stream, dùng khi phục hồi và hạ cấp) | node với node |
 | `Admin` | `Status`, `SetLinkParam`, `SetFault`, `Crash`, `Promote` | GUI, CLI, PING, test |
 
 Trạng thái hiển thị: `health` của node là `OK`, `CORRUPT` hoặc `RECOVERING`; `role` là `PRIMARY` hoặc `REPLICA` kèm `epoch`, `has_quorum`, `members`; `state` của kênh là `UNKNOWN`, `OK`, `LAGGING`, `DOWN` hoặc `DIVERGED`.

@@ -83,12 +83,18 @@ class Node:
         self.store.is_primary = self.primary_id == self.id
         with self._links_lock:
             old, self.links = self.links, [
-                ReplicationLink(lc, self.store, self.replication_stub(lc.dst)) for lc in self._link_configs()
+                ReplicationLink(lc, self.store, self.replication_stub(lc.dst), role=self._role)
+                for lc in self._link_configs()
             ]
         for link in old:
             link.stop()
         for link in self.links:
             link.start()
+
+    def _role(self) -> tuple[str, list[str]]:
+        """(primary_id, members) gửi kèm mỗi Append, để đích biết đúng bản chính kể cả khi nhận qua
+        node trung gian."""
+        return self.primary_id, self.members
 
     def _on_commit(self, lsn: int) -> None:
         for link in list(self.links):

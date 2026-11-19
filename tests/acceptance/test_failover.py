@@ -1,6 +1,7 @@
 """Nâng bản chính thủ công và epoch (docs/operations.md, mục "Khi node chết").
 
-File được sửa: dstock/failover.py, đoạn TODO trong services.ReplicationService.Append (STALE_EPOCH).
+File được sửa: dstock/failover.py, đoạn TODO trong services.ReplicationService.Append (STALE_EPOCH,
+nhận nhiệm kỳ mới).
 Làm xong thì xóa dòng pytestmark bên dưới và chạy file này 3 lần liên tiếp đều xanh.
 """
 import json
@@ -79,11 +80,13 @@ def test_tu_choi_nang_khi_node_bi_loai_van_con_song(make_cluster):
 
 def test_tu_choi_nang_node_khong_moi_nhat(make_cluster):
     c = make_cluster()
-    c.client.set_link_param("N4", 50)                       # N4 nhận theo lô 50 phiếu -> tụt
+    c.stop("N4")                                            # N4 tắt trong lúc ghi -> tụt
     _ghi(c, 3)
     assert c.wait_lsn("N3", 3)
     c.stop("N1")
-    c.stop("N2")
+    c.stop("N2")                                            # N4 mất nguồn duy nhất, không bắt kịp được
+    c.start("N4")
+    assert c.lsn("N4") == 0
     with pytest.raises(grpc.RpcError) as ei:
         c.client.promote("N4", ["N1", "N2"])                # N3 mới hơn N4
     assert ei.value.code() == grpc.StatusCode.FAILED_PRECONDITION
@@ -102,6 +105,20 @@ def test_ban_sao_tu_choi_ban_chinh_cu_bang_epoch(make_cluster):
     stale = pb.AppendRequest(from_node="N1", entries=[], epoch=0)           # bản chính CŨ gửi tới
     reply = c.nodes["N3"].replication_stub("N4").Append(stale, timeout=2)
     assert not reply.ok and reply.error == "STALE_EPOCH" and reply.epoch == 1
+
+
+def test_nhan_nhiem_ky_moi_qua_node_trung_gian(make_cluster):
+    """N4 chỉ nhận từ N2, nên có thể biết nhiệm kỳ mới qua N2 (vd: N3, N4 cùng được nhận lại một
+    lượt, cụm về sơ đồ bình thường). N4 phải lấy bản chính từ primary_id gửi kèm, không từ from_node."""
+    c = make_cluster()
+    _ghi(c, 1)
+    assert c.wait_converged()
+    ca_cum = ["N1", "N2", "N3", "N4"]
+    req = pb.AppendRequest(from_node="N2", entries=[], epoch=1, primary_id="N1", members=ca_cum)
+    reply = c.nodes["N2"].replication_stub("N4").Append(req, timeout=2)
+    assert reply.ok and reply.epoch == 1
+    st = c.client.status("N4")
+    assert (st.epoch, st.primary_id, list(st.members)) == (1, "N1", ca_cum)
 
 
 def test_ban_chinh_cu_quay_lai_tu_ha_cap_va_luu_entry_mo_coi(make_cluster):

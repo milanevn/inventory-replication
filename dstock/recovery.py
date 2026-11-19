@@ -15,7 +15,8 @@
 Thread nền: BẮT BUỘC dùng node.spawn(fn, "tên") và thoát vòng khi node.stopping được bật
 (`while not node.stopping.wait(0.3): ...`) — không thì dừng node có thể treo cả tiến trình.
 
-Việc cần làm (TODO; xem docs/architecture.md, mục Quyết định thiết kế) — chỉ sửa recovery.py + checkpoint.py:
+Việc cần làm (TODO; xem docs/architecture.md, mục Quyết định thiết kế) — chỉ sửa recovery.py,
+checkpoint.py và tạo scripts/lam_hong.py:
   1. Vòng phục hồi chạy NỀN SUỐT ĐỜI node (không chỉ lúc khởi động): thấy health CORRUPT thì
      cách ly file (*.corrupt-<ts>), hỏi Status MỌI nguồn trong cfg.recovery_sources[node_id],
      chọn nguồn OK có last_lsn LỚN NHẤT (hòa: theo thứ tự danh sách), FetchSince(len(phần tốt)),
@@ -27,6 +28,10 @@ Việc cần làm (TODO; xem docs/architecture.md, mục Quyết định thiết
   3. Checkpoint (state-based): lưu snapshot mỗi cfg.snapshot_every entry (qua add_listener). Khi
      khởi động: replay xong so digest với checkpoint để kiểm tra chéo. (Cắt bớt oplog nhờ checkpoint
      là tùy chọn — cần sửa store.py, báo trong nhóm trước.)
+  4. scripts/lam_hong.py — công cụ demo (docs/demo.md, bước 8): làm hỏng CSDL của một node ĐANG TẮT
+     theo các kiểu mà tests/harness.py đã có: sửa số lượng một entry (corrupt_entry), xóa một dòng
+     (delete_entry), cắt đuôi nhật ký (truncate), sửa ton_kho (tamper_stock), xóa file (delete_db).
+     Ví dụ: `python scripts/lam_hong.py N4 sua --lsn 3`. Không có test chấp nhận; thử theo docs/demo.md.
 """
 from __future__ import annotations
 

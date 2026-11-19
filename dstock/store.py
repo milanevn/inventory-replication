@@ -140,6 +140,7 @@ class NodeStore:
                             khác thì "DIVERGED" (hai chuỗi phân kỳ — không ghi đè im lặng).
         - lsn == last+1   : kiểm tra prev_hash + hash rồi áp dụng.
         - lsn >  last+1   : lỗ hổng -> dừng, trả "GAP"; nguồn sẽ gửi lại từ last_lsn+1.
+        - lsn < 1         : entry không hợp lệ -> dừng, trả "INVALID_ENTRY".
         """
         applied = False
         err = ""
@@ -147,6 +148,9 @@ class NodeStore:
             if self.health != HEALTH_OK:
                 return AppendResult(self.oplog.last_lsn, self._head_hash(), "NODE_CORRUPT")
             for e in entries:
+                if e.lsn < 1:                       # dữ liệu từ mạng: không dùng làm chỉ mục âm
+                    err = "INVALID_ENTRY"
+                    break
                 last = self.oplog.last_lsn
                 if e.lsn <= last:
                     if self.oplog.entries[e.lsn - 1].hash != e.hash:

@@ -69,7 +69,10 @@ class ReplicationService(pbg.ReplicationServicer):
         entries = [entry_from_pb(m) for m in request.entries]
         # TODO: CHẶN BẢN CHÍNH CŨ — request.epoch < self.node.store.epoch thì trả
         #   AppendReply(ok=False, error="STALE_EPOCH", epoch=store.epoch) và KHÔNG áp dụng gì.
-        #   request.epoch > store.epoch: nhận bản chính mới (lưu epoch/primary vào meta).
+        #   request.epoch > store.epoch: nhận nhiệm kỳ mới — trong node.role_lock lưu "epoch",
+        #   "primary" = request.primary_id và "members" = request.members (JSON list) vào meta, rồi
+        #   node.apply_role(). Lấy bản chính từ request.primary_id, KHÔNG lấy từ request.from_node:
+        #   nguồn có thể chỉ là node trung gian (N2 chuyển tiếp cho N4).
         r = self.node.store.apply_replicated(entries)
         if entries and not r.error:
             log.debug("[%s] nhận %d entry từ %s -> lsn %d", self.node.id, len(entries), request.from_node,
