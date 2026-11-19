@@ -16,6 +16,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def la_python(pid: int) -> bool:
+    """PID trong pids.txt có thể đã bị hệ điều hành cấp lại cho chương trình khác (Windows dùng lại
+    PID rất nhanh) => chỉ tắt khi tiến trình đó đúng là python."""
+    if sys.platform == "win32":
+        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+                             capture_output=True, text=True, errors="replace").stdout
+        return out.strip().lower().startswith('"python')
+    out = subprocess.run(["ps", "-p", str(pid), "-o", "comm="], capture_output=True, text=True).stdout
+    return "python" in out.lower()
+
+
 def kill(pid: int) -> None:
     if sys.platform == "win32":
         subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True)
@@ -33,8 +44,12 @@ def main() -> int:
     pids = Path("data/pids.txt")
     if pids.exists():
         for line in pids.read_text(encoding="utf-8").split():
-            kill(int(line))
-            print(f"đã tắt pid {line}")
+            pid = int(line)
+            if la_python(pid):
+                kill(pid)
+                print(f"đã tắt pid {pid}")
+            else:
+                print(f"bỏ qua pid {pid}: không còn là tiến trình python của cụm")
         pids.unlink()
     sys.path.insert(0, str(ROOT))
     from dstock.config import load_config

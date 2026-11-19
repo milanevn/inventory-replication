@@ -24,12 +24,18 @@ Việc cần làm (TODO):
      Mỗi vòng gọi Admin.Status (timeout khoảng 0.4 s) song song tới mọi node trong cfg, kể cả node
      đã bị loại khỏi thành viên (để còn nhận lại khi nó quay về). Gọi thành công thì
      node.on_peer_status(nid, status). Đừng gọi tuần tự: 3 node chết x 0.4 s đã vượt cửa sổ 1.5 s.
+     Chỉ spawn MỘT thread cho cả vòng lặp; các lời gọi song song trong mỗi vòng dùng một
+     ThreadPoolExecutor tạo một lần (node.spawn mỗi lần PING sẽ làm danh sách thread phình mãi).
   2. has_quorum(): số node còn sống (trả lời trong 1.5 s gần nhất) + 1 (chính mình) >= majority.
      Mọi node đều chạy monitor, nhưng chỉ bản chính dùng has_quorum() để chặn ghi.
   3. readmit(): node bị loại (sau khi nâng tay) quay lại thì nhận nó vào cụm lại. Điều kiện:
      mình là bản chính, epoch > 0, nid không nằm trong members, status.role == "REPLICA",
-     status.health == "OK" và status.epoch <= epoch của mình. Khi đó, trong node.role_lock:
-     thêm nid vào "members" (JSON list) rồi node.apply_role() để kênh đẩy dữ liệu tới nó.
+     status.health == "OK" và status.epoch == epoch của mình. Epoch bằng nhau nghĩa là node đó đã
+     tự hạ cấp theo nhiệm kỳ mới (failover.on_peer_status: lưu entry mồ côi, nhật ký đã giống
+     mình); epoch còn nhỏ hơn thì CHƯA nhận, chờ vòng PING sau — nhận sớm thì nó có thể còn giữ
+     entry mà mình không có. Khi đủ điều kiện, trong node.role_lock: thêm nid vào "members"
+     (JSON list) rồi node.apply_role() để kênh đẩy dữ liệu tới nó. Các bản sao biết danh sách
+     mới qua Append (cùng epoch, members khác: xem TODO trong services.ReplicationService.Append).
   Test: tests/acceptance/test_membership.py
 """
 from __future__ import annotations

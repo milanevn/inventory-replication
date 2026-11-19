@@ -68,11 +68,16 @@ class ReplicationService(pbg.ReplicationServicer):
     def Append(self, request: pb.AppendRequest, context) -> pb.AppendReply:
         entries = [entry_from_pb(m) for m in request.entries]
         # TODO: CHẶN BẢN CHÍNH CŨ — request.epoch < self.node.store.epoch thì trả
-        #   AppendReply(ok=False, error="STALE_EPOCH", epoch=store.epoch) và KHÔNG áp dụng gì.
+        #   AppendReply(ok=False, error="STALE_EPOCH", epoch=store.epoch, last_lsn, last_hash của
+        #   mình) và KHÔNG áp dụng gì.
         #   request.epoch > store.epoch: nhận nhiệm kỳ mới — trong node.role_lock lưu "epoch",
         #   "primary" = request.primary_id và "members" = request.members (JSON list) vào meta, rồi
         #   node.apply_role(). Lấy bản chính từ request.primary_id, KHÔNG lấy từ request.from_node:
         #   nguồn có thể chỉ là node trung gian (N2 chuyển tiếp cho N4).
+        #   request.epoch == store.epoch nhưng primary_id / members gửi kèm (khác rỗng) khác meta:
+        #   cập nhật như trên. Trường hợp này xảy ra khi bản chính nhận lại node quay về
+        #   (membership.readmit đổi members mà không tăng epoch): thiếu bước này thì N2 không biết cụm
+        #   đã đủ thành viên, không mở lại kênh N2->N4 và N4 đứng yên.
         r = self.node.store.apply_replicated(entries)
         if entries and not r.error:
             log.debug("[%s] nhận %d entry từ %s -> lsn %d", self.node.id, len(entries), request.from_node,

@@ -77,11 +77,11 @@ Sau khi nâng:
 
 - Node cũ bật lại sẽ tự thành bản sao và được nhận lại vào cụm.
 - Nếu bản chính cũ có entry chưa kịp lan đi, chúng nằm trong `data/<id>/orphans-<ts>.jsonl`. Xem file này và nhập lại bằng tay nếu cần.
-- Muốn trả vai trò cho N1 thì đợi N1 bắt kịp rồi chạy `promote N1`.
+- Muốn trả vai trò cho N1: đợi N1 bắt kịp, tắt bản chính hiện tại (ví dụ N3), rồi chạy `promote N1 --exclude N3`. N3 bật lại sẽ tự thành bản sao. `promote` từ chối nếu còn một bản chính khác đang sống, để không có lúc hai bản chính cùng ghi.
 
 ## Khi dữ liệu bị hỏng
 
-Node phát hiện hỏng sẽ chuyển `CORRUPT`, từ chối ghi và tự kéo lại dữ liệu từ nguồn. File hỏng được đổi tên và giữ lại trong thư mục của node.
+Node phát hiện hỏng sẽ chuyển `CORRUPT`, từ chối ghi và tự kéo lại dữ liệu từ nguồn. Bản sao của file hỏng được giữ lại trong thư mục của node (`dstock.db.corrupt-<thời điểm>`) để điều tra.
 
 | Hiện tượng | Nguyên nhân thường gặp | Hệ thống làm gì |
 |---|---|---|

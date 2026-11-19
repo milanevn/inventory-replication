@@ -6,6 +6,19 @@ Kiến trúc luồng (quan trọng với Tkinter: CHỈ thread chính được �
     thread "poller"  : mỗi 0.5s gọi Admin.Status 4 node -> đẩy kết quả vào queue
     thread "action"  : mỗi thao tác (ghi phiếu, đổi n, crash) chạy ở thread riêng -> đẩy log vào queue
     thread chính     : root.after(150ms) lấy queue -> vẽ lại
+
+Việc cần làm (TODO), để chạy được kịch bản trong docs/demo.md:
+  1. Khung "Gây lỗi mạng": chọn kênh nguồn -> đích, cắt / gỡ (bắt buộc), bỏ x% gói, trễ y ms (tùy
+     chọn) -> client.set_fault(...).
+  2. Form khai báo sản phẩm (client.khai_bao).
+  3. Mỗi thẻ node hiện epoch, members và có đủ đa số hay không (NodeStatus.epoch, members, has_quorum).
+  4. Nút "Nâng lên bản chính": chọn node và các node loại trừ, HỎI XÁC NHẬN rồi mới gọi
+     client.promote(...); báo rõ lỗi khi promote bị từ chối.
+  5. Chế độ chỉ đọc: khi không gọi được bản chính, khung tồn kho đọc qua client.stock() (tự chọn node
+     mới nhất) và hiện node đang đọc, lsn, cảnh báo dữ liệu có thể cũ.
+  6. Độ lệch của N3 (giây) và N4 (số thao tác) so với bản chính.
+  Bản chính để so sánh lấy từ trạng thái các node (_ban_chinh), không lấy từ cấu hình: sau khi nâng
+  tay thì cfg.primary không còn đúng.
 """
 from __future__ import annotations
 
@@ -222,8 +235,15 @@ class Dashboard:
         if not self._stop.is_set():
             self._after_id = self.root.after(150, self._drain)
 
+    @staticmethod
+    def _ban_chinh(snap: dict):
+        """Status của bản chính hiện tại: node PRIMARY có epoch lớn nhất (sau khi nâng tay thì
+        cfg.primary không còn đúng). None nếu không node nào đang là bản chính."""
+        prim = [st for st in snap.values() if st is not None and st.role == "PRIMARY"]
+        return max(prim, key=lambda st: st.epoch) if prim else None
+
     def _render(self, snap: dict) -> None:
-        primary = snap.get(self.cfg.primary)
+        primary = self._ban_chinh(snap)
         for nid, card in self.cards.items():
             card.show(snap.get(nid), primary)
             health = snap[nid].health if snap.get(nid) else "DOWN"

@@ -5,10 +5,14 @@ vẫn là một chuỗi hợp lệ. Vì vậy cần so ĐẦU CHUỖI với node
 ReplicationLink._check_head).
 
 Các test ở đây kiểm BẤT BIẾN, đúng cả trước và sau khi có phục hồi:
-    - hoặc N1 còn CORRUPT và TỪ CHỐI ghi,
+    - hoặc N1 còn hỏng (CORRUPT, hoặc RECOVERING khi đang phục hồi) và TỪ CHỐI ghi,
     - hoặc N1 đã phục hồi đủ (lsn = 5) và lần ghi tiếp theo được lsn 6, khớp với mọi bản sao.
 """
+import json
+
 from harness import wait_until
+
+DANG_HONG = ("CORRUPT", "RECOVERING")
 
 
 def _ghi(c, n):
@@ -23,9 +27,8 @@ def _khong_cap_lai_lsn(c, lsn_truoc: int) -> None:
     if r.ok:                                                   # đã phục hồi
         assert r.lsn == lsn_truoc + 1
         assert c.wait_converged()
-    else:
-        assert r.error.startswith("NODE_CORRUPT")
-        assert c.health("N1") == "CORRUPT"
+    else:                                                      # chưa phục hồi xong: phải từ chối
+        assert r.error.startswith("NODE_CORRUPT"), r.error
     # các entry bản sao đã có KHÔNG bị thay
     assert [e.hash for e in c.nodes["N2"].store.oplog.entries][:len(hash_n2)] == hash_n2
 
@@ -58,7 +61,7 @@ def test_N1_mat_duoi_khi_ban_sao_dang_tat_van_bi_phat_hien_sau(make_cluster):
     assert c.lsn("N1") == 2
     c.start("N2")
     # kênh N1->N2 thấy N2 đi trước: N1 bị đánh dấu CORRUPT (rồi recovery.py phục hồi về lsn 5)
-    assert wait_until(lambda: c.health("N1") == "CORRUPT" or c.lsn("N1") == 5, timeout=3)
+    assert wait_until(lambda: c.health("N1") in DANG_HONG or c.lsn("N1") == 5, timeout=3)
 
 
 def test_GetStock_bao_health(make_cluster):
@@ -68,4 +71,29 @@ def test_GetStock_bao_health(make_cluster):
     c.truncate("N1", keep=1)
     c.start("N1")
     r = c.client.stock("N1")
-    assert (r.health, r.lsn) in (("CORRUPT", 1), ("OK", 2))
+    # còn hỏng thì health báo cho client biết; đã phục hồi thì phải đủ dữ liệu
+    assert r.health in DANG_HONG or (r.health, r.lsn) == ("OK", 2), (r.health, r.lsn)
+
+
+def test_ban_sao_nhiem_ky_cu_di_truoc_khong_lam_ban_chinh_moi_hong(make_cluster):
+    """N3 tụt lại rồi được nâng (epoch 1) khi N1, N2 đã chết; N4 vẫn ở epoch 0 và có entry N3 chưa
+    có. Bản chính mới KHÔNG được tự khóa ghi vì một bản sao nhiệm kỳ cũ đi trước (bản sao đó sẽ tự
+    hạ cấp, lưu entry mồ côi) — cả khi đang chạy (kênh) lẫn khi khởi động lại."""
+    c = make_cluster()
+    _ghi(c, 3)
+    c.stop("N3")
+    _ghi_tiep = [c.nhap(f"PX{i}", "SP01:1").ok for i in range(2)]   # N1, N2, N4 lên lsn 5
+    assert all(_ghi_tiep) and c.wait_lsn("N4", 5)
+    c.stop("N1")
+    c.stop("N2")
+    c.start("N3")                                              # lsn 3
+    n3 = c.nodes["N3"]
+    with n3.role_lock:                                         # dựng trạng thái "đã nâng N3" bằng meta
+        n3.store.set_meta("epoch", "1")
+        n3.store.set_meta("primary", "N3")
+        n3.store.set_meta("members", json.dumps(["N3", "N4"]))
+        n3.apply_role()
+    assert wait_until(lambda: c.link("N3", "N4").state == "DIVERGED", timeout=3)
+    assert c.health("N3") == "OK"
+    c.restart("N3")
+    assert c.health("N3") == "OK"

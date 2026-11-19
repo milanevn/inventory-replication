@@ -72,6 +72,9 @@ def main() -> int:
                 p.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 p.kill()
+        # Tắt hết rồi thì PID cũ không còn nghĩa; để lại thì stop_cluster.py có thể tắt nhầm
+        # chương trình khác được cấp lại PID đó.
+        Path("data/pids.txt").unlink(missing_ok=True)
         print("Đã dừng.")
     return 0
 

@@ -21,7 +21,7 @@ Khoảng 12 phút. Mục tiêu là cho thấy đủ ba kiểu lan truyền, ph�
 ## Phần 2: dữ liệu bị tổn hại
 
 7. Crash N3, ghi 3 phiếu, bật lại N3. N3 tự bắt kịp.
-8. Tắt N4, sửa một số trong `change_log` của `data/N4/dstock.db` (bằng DB Browser hoặc `scripts/lam_hong.py`), bật lại. N4 báo `CORRUPT` rồi tự phục hồi từ N2.
+8. Tắt N4, sửa một số trong `change_log` của `data/N4/dstock.db` (bằng DB Browser hoặc `scripts/lam_hong.py`), bật lại. N4 báo `CORRUPT` rồi tự phục hồi từ N2. Dùng DB Browser thì bấm Write Changes và đóng file trước khi bật lại node, nếu không node không mở hoặc không thay được CSDL.
 9. Tắt N3, sửa số tồn trong `ton_kho`, bật lại. N3 dựng lại bảng từ nhật ký, số tồn đúng như cũ.
 10. Tắt N1, xóa vài dòng cuối trong `change_log` của N1, bật lại. N1 thấy bản sao đi trước mình nên chuyển `CORRUPT`, không cấp lại LSN cũ, rồi phục hồi từ node mới nhất.
 

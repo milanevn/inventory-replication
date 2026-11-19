@@ -8,6 +8,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15          # một test treo không giữ job tới 6 tiếng
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

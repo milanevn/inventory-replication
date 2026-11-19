@@ -81,6 +81,19 @@ def test_tu_choi_nang_khi_node_bi_loai_van_con_song(make_cluster):
 
 
 @pytest.mark.todo
+def test_tu_choi_nang_khi_con_ban_chinh_khac_dang_song(make_cluster):
+    """Trả vai trò phải tắt bản chính hiện tại trước: còn một bản chính khác đang sống (không bị
+    exclude) thì promote bị từ chối, nếu không sẽ có lúc hai bản chính cùng ghi."""
+    c = make_cluster()
+    _ghi(c, 2)
+    assert c.wait_converged()                               # N2 mới nhất như N1, không bị loại
+    with pytest.raises(grpc.RpcError) as ei:
+        c.client.promote("N2", [])
+    assert ei.value.code() == grpc.StatusCode.FAILED_PRECONDITION
+    assert c.client.status("N1").role == "PRIMARY" and c.client.status("N2").epoch == 0
+
+
+@pytest.mark.todo
 def test_tu_choi_nang_node_khong_moi_nhat(make_cluster):
     c = make_cluster()
     c.stop("N4")                                            # N4 tắt trong lúc ghi -> tụt
@@ -124,6 +137,27 @@ def test_nhan_nhiem_ky_moi_qua_node_trung_gian(make_cluster):
     assert reply.ok and reply.epoch == 1
     st = c.client.status("N4")
     assert (st.epoch, st.primary_id, list(st.members)) == (1, "N1", ca_cum)
+
+
+@pytest.mark.todo
+def test_ban_chinh_cu_chi_thay_ban_sao_nhiem_ky_moi_van_ha_cap(make_cluster):
+    """N2 được nâng rồi cũng chết; N1 bật lại chỉ thấy N3, N4 là bản sao ở epoch 1, không còn
+    PRIMARY nào sống. N1 vẫn phải tự hạ cấp và từ chối ghi: nếu nhận ghi thì bản sao sẽ trả
+    STALE_EPOCH, lệnh ghi đã báo thành công cho client sẽ mất."""
+    c = make_cluster()
+    _ghi(c, 3)
+    assert c.wait_converged()
+    c.stop("N1")
+    _nang(c, "N2", ["N1"])
+    assert c.nhap("PN-moi", "SP01:1").lsn == 4
+    assert wait_until(lambda: c.nodes["N3"].store.epoch == 1 and c.nodes["N4"].store.epoch == 1, timeout=3)
+    c.stop("N2")
+    c.start("N1")                                           # bản chính cũ quay lại, bản chính mới đã chết
+    assert wait_until(lambda: _role(c, "N1") == "REPLICA", timeout=5)
+    r = c.client.inventory("N1").Write(pb.Voucher(req_id="y", kind="NHAP", code="P-y",
+                                                  lines=[pb.Line(sku="SP01", qty=1)]), timeout=2)
+    assert not r.ok
+    assert wait_until(lambda: c.lsn("N1") == 4, timeout=5)  # đã kéo nhật ký nhiệm kỳ mới về
 
 
 @pytest.mark.todo

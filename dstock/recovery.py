@@ -18,15 +18,21 @@ Thread nền: BẮT BUỘC dùng node.spawn(fn, "tên") và thoát vòng khi nod
 Việc cần làm (TODO; xem docs/architecture.md, mục Quyết định thiết kế) — chỉ sửa recovery.py,
 checkpoint.py và tạo scripts/lam_hong.py:
   1. Vòng phục hồi chạy NỀN SUỐT ĐỜI node (không chỉ lúc khởi động): thấy health CORRUPT thì
-     cách ly file (*.corrupt-<ts>), hỏi Status MỌI nguồn trong cfg.recovery_sources[node_id],
-     chọn nguồn OK có last_lsn LỚN NHẤT (hòa: theo thứ tự danh sách), FetchSince(len(phần tốt)),
-     kiểm chuỗi nối tiếp phần tốt (oplog.verify_chain), replace_log. Mọi nguồn chết: giữ CORRUPT,
-     thử lại sau. Không chặn on_startup quá ~1 giây.
+     cách ly file bằng cách SAO CHÉP (shutil.copy2) sang dstock.db.corrupt-<ts>, KHÔNG đổi tên:
+     store vẫn giữ kết nối SQLite tới file, Windows sẽ báo WinError 32 khi đổi tên (CI chạy Linux
+     nên không thấy lỗi này); replace_log ghi đè file gốc sau đó.
+     Rồi hỏi Status MỌI nguồn trong cfg.recovery_sources[node_id], chọn nguồn OK có last_lsn LỚN
+     NHẤT (hòa: theo thứ tự danh sách), FetchSince(len(phần tốt)), kiểm chuỗi nối tiếp phần tốt
+     (oplog.verify_chain), replace_log. Mọi nguồn chết: giữ CORRUPT, thử lại sau. Không chặn
+     on_startup quá ~1 giây.
+     Chế độ sự cố (node.primary_id != cfg.primary, hoặc node.members thiếu node): sơ đồ cạnh không
+     còn, nên nguồn là bản chính hiện tại rồi tới các thành viên còn lại, thay cho recovery_sources.
   2. SCRUB khi đang chạy: mỗi ~1s đọc lại file và so với RAM. BẮT BUỘC làm trong `store.lock`:
      append() ghi file TRƯỚC rồi mới cập nhật RAM — đọc ngoài khóa sẽ thấy file "dài hơn" RAM,
      tưởng lệch rồi ghi đè => làm MẤT entry vừa fsync. File lệch thì ghi lại từ RAM (khắc phục tiến).
+     Đọc file bằng một OpLog(path) riêng rồi đóng; không gọi store.oplog.load() (hàm này ghi đè RAM).
   3. Checkpoint (state-based): lưu snapshot mỗi cfg.snapshot_every entry (qua add_listener). Khi
-     khởi động: replay xong so digest với checkpoint để kiểm tra chéo. (Cắt bớt oplog nhờ checkpoint
+     khởi động: replay xong so lsn, last_hash và số tồn với checkpoint để kiểm tra chéo. (Cắt bớt oplog nhờ checkpoint
      là tùy chọn — cần sửa store.py, báo trong nhóm trước.)
   4. scripts/lam_hong.py — công cụ demo (docs/demo.md, bước 8): làm hỏng CSDL của một node ĐANG TẮT
      theo các kiểu mà tests/harness.py đã có: sửa số lượng một entry (corrupt_entry), xóa một dòng

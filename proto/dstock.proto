@@ -46,7 +46,7 @@ message Entry {
   string code      = 4;
   repeated Line lines = 5;
   string note      = 6;
-  double ts        = 7;       // thời điểm N1 ghi (epoch giây) — chỉ để hiển thị
+  double ts        = 7;       // thời điểm bản chính ghi (epoch giây); nằm trong hash, không được sửa
   string prev_hash = 8;       // hash của entry lsn-1 (entry đầu: 64 số 0)
   string hash      = 9;       // sha256 của các field còn lại (xem dstock/oplog.py)
   string product_name = 10;   // SANPHAM
@@ -160,7 +160,7 @@ message LinkInfo {
   string from_node   = 1;
   string to_node     = 2;
   string mode        = 3;       // sync | interval | count
-  double param       = 4;       // timeout_ms (sync) | n giây (interval) | n lần (count)
+  double param       = 4;       // không dùng (sync) | n giây (interval) | n lần (count)
   int64  acked_lsn   = 5;       // đích đã xác nhận tới lsn nào (-1 = chưa biết)
   int64  pending     = 6;       // số entry đang chờ gửi (-1 = chưa biết)
   string state       = 7;       // UNKNOWN | OK | LAGGING | DOWN | DIVERGED

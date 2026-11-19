@@ -82,6 +82,7 @@ Phía nhận (`NodeStore.apply_replicated`) xử lý từng entry:
 |---|---|
 | epoch của nguồn nhỏ hơn epoch của đích | trả `STALE_EPOCH`, không áp dụng |
 | epoch của nguồn lớn hơn epoch của đích | lưu epoch, `primary_id`, `members` gửi kèm rồi xét tiếp từng entry |
+| cùng epoch nhưng `primary_id`, `members` gửi kèm khác | cập nhật hai giá trị này (bản chính vừa nhận lại một node) |
 | `lsn < 1` | trả `INVALID_ENTRY`, không áp dụng |
 | `lsn <= last` | đã có: cùng hash thì bỏ qua, khác hash thì `DIVERGED` |
 | `lsn == last + 1` | kiểm `prev_hash` và `hash`, ghi trong một transaction; sai thì `HASH_MISMATCH` |
@@ -106,7 +107,7 @@ Khi khởi động, `NodeStore.open`:
 2. Kiểm chuỗi hash của `change_log`. Chuỗi vỡ thì giữ phần còn tốt và chuyển `CORRUPT`.
 3. Chạy lại nhật ký để dựng trạng thái trong RAM.
 4. So với `san_pham` và `ton_kho`; lệch thì dựng lại hai bảng này.
-5. Nếu là bản chính thì hỏi các node khác: có node đi trước thì chuyển `CORRUPT`; thấy bản chính có epoch lớn hơn thì tự hạ cấp.
+5. Nếu là bản chính thì `Node` (không phải store) hỏi các node khác trước khi nhận ghi: thấy node nào có epoch lớn hơn, dù là bản chính hay bản sao, thì tự hạ cấp; có bản sao cùng epoch đi trước thì chuyển `CORRUPT`.
 
 ## Vai trò, đa số và epoch
 
@@ -120,12 +121,14 @@ cli promote N3 --exclude N1 N2
     epoch 0 -> 1, members = [N3, N4], primary = N3
     N3 thành bản chính, đẩy thẳng tới N4
 
-N1 bật lại, thấy N3 là bản chính với epoch 1 > 0
+N1 bật lại, thấy N3 (hoặc chỉ N4) ở epoch 1 > 0
     entry của N1 sau điểm chung ghi ra data/N1/orphans-<ts>.jsonl
-    nhật ký của N1 thay bằng bản của N3, N1 thành bản sao
-N3 thấy N1 sống và nằm ngoài danh sách thành viên
+    nhật ký của N1 thay bằng bản của node đó, N1 thành bản sao ở epoch 1
+N3 thấy N1 sống, nằm ngoài danh sách thành viên và đã ở epoch 1
     nhận N1 vào cụm lại, đẩy dữ liệu cho N1
 ```
+
+Node quay về chỉ được nhận lại khi đã tự hạ cấp xong (cùng epoch với bản chính). Nhận sớm hơn thì nó có thể còn giữ entry mà bản chính mới không có. Bản sao ở epoch cũ đi trước bản chính cũng không làm bản chính chuyển `CORRUPT`: chỉ bản sao cùng epoch đi trước mới chứng tỏ bản chính mất dữ liệu.
 
 Sơ đồ 1→2→4, 1→3 chỉ dùng khi bản chính là N1 và đủ 4 thành viên. Các trường hợp khác bản chính đẩy thẳng tới mọi thành viên. Code sửa `epoch`, `primary`, `members` phải giữ `node.role_lock`. Cách xử lý cho từng tình huống node chết xem [operations.md](operations.md#khi-node-chết).
 
@@ -184,7 +187,7 @@ Nếu mạng bị chia cắt mà N1 bị cô lập vẫn ghi, trong khi phía b�
 
 ### Không bầu cử tự động
 
-Muốn tự bầu thì phải phát hiện bản chính chết bằng timeout. Nhưng timeout không phân biệt được node chết với mạng chậm hay mạng đứt; bầu sai là có hai bản chính. Nhóm chọn để người quản trị xác nhận rồi nâng bằng tay, kể cả khi N1 chết mà vẫn còn đa số. Lệnh `promote` chỉ chạy khi các node bị loại thật sự không trả lời, không có node sống nào mới hơn, node được nâng không hỏng và còn ít nhất 2 thành viên. Epoch chặn bản chính cũ quay lại ghi tiếp. Cái giá là thời gian ngừng ghi phụ thuộc vào con người, và phần chưa kịp lan tới node được nâng chỉ còn trong file entry mồ côi. Bầu cử Bully để ở phần tùy chọn. (Bài 7; term của Raft, epoch của Kafka.)
+Muốn tự bầu thì phải phát hiện bản chính chết bằng timeout. Nhưng timeout không phân biệt được node chết với mạng chậm hay mạng đứt; bầu sai là có hai bản chính. Nhóm chọn để người quản trị xác nhận rồi nâng bằng tay, kể cả khi N1 chết mà vẫn còn đa số. Lệnh `promote` chỉ chạy khi các node bị loại thật sự không trả lời, không có node sống nào mới hơn, không có node sống nào khác đang là bản chính, node được nâng không hỏng và còn ít nhất 2 thành viên. Epoch chặn bản chính cũ quay lại ghi tiếp. Cái giá là thời gian ngừng ghi phụ thuộc vào con người, và phần chưa kịp lan tới node được nâng chỉ còn trong file entry mồ côi. Bầu cử Bully để ở phần tùy chọn. (Bài 7; term của Raft, epoch của Kafka.)
 
 ### gRPC giữa các node
 

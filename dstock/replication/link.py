@@ -182,6 +182,11 @@ class ReplicationLink:
                                epoch=self.store.epoch, primary_id=primary_id, members=members)
         reply = self.stub.Append(req, timeout=self.rpc_timeout)
         self._last_contact = time.monotonic()
+        if reply.error == "STALE_EPOCH":
+            # Đích đã ở nhiệm kỳ mới hơn: nguồn là bản chính cũ (failover.py sẽ hạ cấp nó).
+            # Không đụng acked_lsn, không gửi tiếp.
+            self.set_state(STATE_LAGGING, f"STALE_EPOCH: đích ở epoch {reply.epoch} > {self.store.epoch}")
+            return
         if not self._check_head(reply):
             return
         with self._acked_cv:
@@ -210,7 +215,11 @@ class ReplicationLink:
         else:
             return True
         self.set_state(STATE_DIVERGED, why)
-        if st.is_primary and reply.last_lsn > my_last and st.health != HEALTH_CORRUPT:
+        # Chỉ một bản sao CÙNG nhiệm kỳ đi trước mới chứng tỏ bản chính mất dữ liệu. Bản sao ở
+        # nhiệm kỳ cũ (vd: node bị loại vừa quay về, còn giữ entry bản chính mới chưa có) thì chỉ
+        # báo lệch và chờ nó tự hạ cấp (failover.py), không khóa ghi của bản chính.
+        if (st.is_primary and reply.last_lsn > my_last and reply.epoch == st.epoch
+                and st.health != HEALTH_CORRUPT):
             st.mark(HEALTH_CORRUPT, f"bản sao {self.cfg.dst} đi trước bản chính ({why}) — cần phục hồi")
             log.error("[%s] %s", self.cfg.src, st.detail)
         return False

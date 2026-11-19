@@ -41,6 +41,7 @@ class Node:
         self.faults = FaultInjector()
         self.membership = MembershipMonitor(self)
         self._channels: dict[str, grpc.Channel] = {}
+        self._channels_lock = threading.Lock()
         self._links_lock = threading.Lock()
         # Giữ khóa này khi đổi epoch / primary / members trong meta (failover.py hạ cấp, membership.py nhận lại node)
         self.role_lock = threading.RLock()
@@ -81,6 +82,8 @@ class Node:
     def apply_role(self) -> None:
         """Đọc lại vai trò từ meta, đặt store.is_primary và dựng lại các kênh nhân bản đi ra."""
         self.store.is_primary = self.primary_id == self.id
+        if self.stopping.is_set():
+            return          # node đang dừng: không dựng kênh mới trên các kênh gRPC sắp bị đóng
         with self._links_lock:
             old, self.links = self.links, [
                 ReplicationLink(lc, self.store, self.replication_stub(lc.dst), role=self._role)
@@ -128,11 +131,12 @@ class Node:
     # ------------------------------------------------------------------ kênh tới node khác
     def channel_to(self, dst: str) -> grpc.Channel:
         """Kênh gRPC tới node `dst`, đi qua lớp gây lỗi (FaultInterceptor) của node này."""
-        if dst not in self._channels:
-            self._channels[dst] = make_channel(
-                self.cfg.nodes[dst].address, (FaultInterceptor(self.faults, dst),)
-            )
-        return self._channels[dst]
+        with self._channels_lock:          # nhiều thread cùng gọi lần đầu => chỉ tạo một kênh
+            if dst not in self._channels:
+                self._channels[dst] = make_channel(
+                    self.cfg.nodes[dst].address, (FaultInterceptor(self.faults, dst),)
+                )
+            return self._channels[dst]
 
     def replication_stub(self, dst: str) -> pbg.ReplicationStub:
         return pbg.ReplicationStub(self.channel_to(dst))
@@ -176,6 +180,10 @@ class Node:
             self.server.stop(grace).wait()
         for t in self._threads:                 # chờ các vòng nền thoát TRƯỚC khi đóng kênh
             t.join(timeout=4)
+        with self._links_lock:                  # kênh do apply_role dựng ngay trước khi dừng
+            links = list(self.links)
+        for link in links:
+            link.stop()
         for ch in self._channels.values():
             ch.close()
         self.store.close()
@@ -233,8 +241,10 @@ class Node:
             self.on_peer_status(nid, st)
         if not self.is_primary or self.store.health != HEALTH_OK:
             return
+        # Chỉ bản sao CÙNG nhiệm kỳ đi trước mới chứng tỏ mình mất dữ liệu; node ở nhiệm kỳ cũ có
+        # thể còn giữ entry mồ côi của bản chính cũ (nó sẽ tự hạ cấp), không phải lỗi của mình.
         ahead = {nid: st.last_lsn for nid, st in results.items()
-                 if st.last_lsn > self.store.last_lsn and st.epoch <= self.store.epoch}
+                 if st.last_lsn > self.store.last_lsn and st.epoch == self.store.epoch}
         if ahead:
             self.store.mark(HEALTH_CORRUPT, f"bản sao đi trước bản chính {ahead} (bản chính ở lsn "
                                             f"{self.store.last_lsn}): bản chính đã mất dữ liệu — cần phục hồi")
