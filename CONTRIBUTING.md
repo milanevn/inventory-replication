@@ -63,7 +63,7 @@ PR được merge bằng merge commit, nên mọi commit trên nhánh đều đi
 
 Một phần việc được coi là xong khi:
 
-- test chấp nhận của phần đó xanh (đã xóa dòng `pytestmark = pytest.mark.todo(...)`), chạy 3 lần liên tiếp không lần nào đỏ, và toàn bộ `pytest` vẫn xanh;
+- đã xóa dấu `@pytest.mark.todo` của các test chấp nhận thuộc phần việc đó, các test này chạy 3 lần liên tiếp không lần nào đỏ, và toàn bộ `pytest` vẫn xanh;
 - demo được bằng GUI hoặc CLI;
 - PR đã được duyệt và merge.
 
@@ -80,7 +80,7 @@ Docstring đầu mỗi module và các comment `TODO` ghi rõ phần nào còn p
 ## Test
 
 ```bash
-pytest                         # test lõi, phải xanh (47 passed, 43 skipped)
+pytest                         # phải xanh: không có test nào failed
 pytest --run-todo -k triggers  # chỉ test chấp nhận của triggers
 pytest --run-optional          # thêm test của phần tùy chọn
 pytest -x -q tests/test_store.py::test_req_id_trung_khong_ghi_lai

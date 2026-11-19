@@ -4,7 +4,8 @@ Quy tắc chọn nguồn (cluster.toml [recovery_sources]) — đi THEO CHIỀU 
     N2, N3 <- N1;  N4 <- CHỈ N2;  N1 <- bản sao có last_lsn LỚN NHẤT.
 Hỏi Status mọi nguồn trong danh sách, chọn nguồn OK có last_lsn lớn nhất (hòa: theo thứ tự).
 Mọi nguồn chết thì giữ CORRUPT và THỬ LẠI sau (vòng nền suốt đời node).
-Xong phần của mình: XÓA dòng pytestmark bên dưới.
+Test chưa làm có dấu @pytest.mark.todo ngay trên nó. Làm xong việc nào thì xóa dấu của đúng
+các test của việc đó (dấu optional=True chỉ xóa khi làm phần tùy chọn) và chạy chúng 3 lần liên tiếp đều xanh.
 """
 import time
 
@@ -13,8 +14,6 @@ import pytest
 from dstock import checkpoint
 from dstock.oplog import OpLog
 from harness import wait_until
-
-pytestmark = pytest.mark.todo
 
 
 def _ghi(c, n):
@@ -34,6 +33,7 @@ def _db_ok(c, nid):
         log.close()
 
 
+@pytest.mark.todo
 def test_ban_sao_sua_du_lieu_tu_phuc_hoi_khi_khoi_dong(make_cluster):
     c = make_cluster()
     _ghi(c, 6)
@@ -46,6 +46,7 @@ def test_ban_sao_sua_du_lieu_tu_phuc_hoi_khi_khoi_dong(make_cluster):
     assert _db_ok(c, "N3")                   # CSDL trên đĩa hợp lệ trở lại
 
 
+@pytest.mark.todo
 def test_csdl_hong_duoc_cach_ly_khong_xoa(make_cluster):
     c = make_cluster()
     _ghi(c, 4)
@@ -57,6 +58,7 @@ def test_csdl_hong_duoc_cach_ly_khong_xoa(make_cluster):
     assert quarantined, "phải giữ lại bản hỏng để điều tra"
 
 
+@pytest.mark.todo
 def test_file_csdl_hong_toi_muc_khong_mo_duoc(make_cluster):
     c = make_cluster()
     _ghi(c, 3)
@@ -67,6 +69,7 @@ def test_file_csdl_hong_toi_muc_khong_mo_duoc(make_cluster):
     assert c.wait_converged(timeout=5)
 
 
+@pytest.mark.todo
 def test_ban_chinh_sua_du_lieu_phuc_hoi_tu_ban_sao(make_cluster):
     c = make_cluster()
     _ghi(c, 5)
@@ -79,6 +82,7 @@ def test_ban_chinh_sua_du_lieu_phuc_hoi_tu_ban_sao(make_cluster):
     assert c.wait_converged()
 
 
+@pytest.mark.todo
 def test_ban_chinh_mat_duoi_phuc_hoi(make_cluster):
     c = make_cluster()
     _ghi(c, 5)
@@ -91,6 +95,7 @@ def test_ban_chinh_mat_duoi_phuc_hoi(make_cluster):
     assert c.wait_converged()
 
 
+@pytest.mark.todo
 def test_ban_chinh_mat_ca_file_phuc_hoi(make_cluster):
     c = make_cluster()
     _ghi(c, 3)
@@ -101,6 +106,7 @@ def test_ban_chinh_mat_ca_file_phuc_hoi(make_cluster):
     assert c.lsn("N1") == 3
 
 
+@pytest.mark.todo
 def test_N2_dang_tut_thi_N1_phuc_hoi_tu_node_moi_nhat(make_cluster):
     """1->2 không chờ xác nhận nên N2 có thể THIẾU dữ liệu; N3 mới hơn. N1 phải lấy từ N3."""
     c = make_cluster()
@@ -118,6 +124,7 @@ def test_N2_dang_tut_thi_N1_phuc_hoi_tu_node_moi_nhat(make_cluster):
     assert c.wait_converged(timeout=8)
 
 
+@pytest.mark.todo
 def test_N4_chi_phuc_hoi_tu_N2_va_thu_lai(make_cluster):
     """Đề: s4 chỉ nhận dữ liệu từ s2. N2 chết thì N4 CHỜ (giữ CORRUPT), không lấy từ N1."""
     c = make_cluster()

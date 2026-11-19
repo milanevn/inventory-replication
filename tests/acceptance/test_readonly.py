@@ -5,13 +5,13 @@
     monitor) sang node còn sống có last_lsn LỚN NHẤT; hòa thì theo thứ tự recovery_sources[primary].
   - StockReply.node_id / lsn / last_apply_ts cho biết dữ liệu cũ tới đâu (GUI hiển thị).
   - Nhất quán ĐỌC ĐỀU: cùng một client không bao giờ thấy lsn NHỎ HƠN lần đọc trước.
-Xong: XÓA dòng pytestmark bên dưới.
+Test chưa làm có dấu @pytest.mark.todo ngay trên nó. Làm xong việc nào thì xóa dấu của đúng
+các test của việc đó (dấu optional=True chỉ xóa khi làm phần tùy chọn) và chạy chúng 3 lần liên tiếp đều xanh.
 """
 import pytest
 
-pytestmark = pytest.mark.todo
 
-
+@pytest.mark.todo
 def test_N1_sap_thi_doc_tu_node_moi_nhat(make_cluster):
     c = make_cluster()
     for i in range(4):
@@ -22,6 +22,7 @@ def test_N1_sap_thi_doc_tu_node_moi_nhat(make_cluster):
     assert r.node_id == "N2" and r.lsn == 4  # cả 3 cùng lsn 4 -> hòa -> N2 đứng đầu danh sách
 
 
+@pytest.mark.todo
 def test_N1_va_N2_sap_van_doc_duoc_tu_N3_N4(make_cluster):
     c = make_cluster()
     c.nhap("PN1", "SP01:1")
@@ -32,6 +33,7 @@ def test_N1_va_N2_sap_van_doc_duoc_tu_N3_N4(make_cluster):
     assert r.node_id == "N3" and r.lsn == 1
 
 
+@pytest.mark.todo
 def test_uu_tien_node_moi_hon(make_cluster):
     c = make_cluster()
     c.nhap("PN1", "SP01:1")
@@ -44,6 +46,7 @@ def test_uu_tien_node_moi_hon(make_cluster):
     assert r.node_id == "N3" and r.lsn == 2
 
 
+@pytest.mark.todo
 def test_nhat_quan_doc_deu(make_cluster):
     """Client đã thấy lsn 2; nếu chỉ còn node CŨ HƠN (lsn 1) thì báo StaleRead, không trả dữ liệu cũ."""
     from dstock.errors import StaleRead

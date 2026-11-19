@@ -10,9 +10,10 @@ from harness import Cluster  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Test chấp nhận của các phần còn thiếu (tests/acceptance/):
-#   pytestmark = pytest.mark.todo                         BẮT BUỘC (đủ đề) — chưa làm
+#   @pytest.mark.todo                                     BẮT BUỘC (đủ đề) — chưa làm
 #   @pytest.mark.todo(optional=True)                      TÙY CHỌN (làm nếu còn thời gian)
-# Mặc định cả hai bị BỎ QUA (để main luôn xanh). Làm xong thì XÓA dấu todo của test đó.
+# Dấu đặt ngay trên TỪNG test. Mặc định cả hai bị BỎ QUA (để main luôn xanh).
+# Làm xong việc nào thì XÓA dấu của đúng các test đó: từ lúc ấy chúng chạy trong `pytest` và CI.
 #   pytest --run-todo          chạy thêm test BẮT BUỘC chưa làm (xem tiến độ)
 #   pytest --run-optional      chạy thêm cả test TÙY CHỌN
 #   pytest --run-todo -k triggers   chỉ test chấp nhận của triggers

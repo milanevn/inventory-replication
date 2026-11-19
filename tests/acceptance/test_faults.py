@@ -2,7 +2,8 @@
 
 Mỗi lần interceptor thực sự gây lỗi (bỏ / cắt / trễ) phải gọi FaultInjector.count_injected() —
 test dùng số này để chắc lỗi ĐÃ xảy ra (không thì test "vẫn hội tụ" qua được dù chưa làm gì).
-Xong phần của mình: XÓA dòng pytestmark bên dưới.
+Test chưa làm có dấu @pytest.mark.todo ngay trên nó. Làm xong việc nào thì xóa dấu của đúng
+các test của việc đó (dấu optional=True chỉ xóa khi làm phần tùy chọn) và chạy chúng 3 lần liên tiếp đều xanh.
 """
 import time
 
@@ -10,13 +11,12 @@ import pytest
 
 from harness import wait_until
 
-pytestmark = pytest.mark.todo
-
 
 def _link_info(c, src, dst):
     return next(l for l in c.client.status(src).links if l.to_node == dst)
 
 
+@pytest.mark.todo
 def test_cat_kenh_N1_N3(make_cluster):
     c = make_cluster()
     c.client.set_fault("N1", "N3", partition=True)

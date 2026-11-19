@@ -2,7 +2,8 @@
 
 Ngữ nghĩa đã chốt: interval = mỗi cập nhật tới N3 khoảng n giây sau khi ghi ở N1 (tính từ entry
 chờ CŨ NHẤT), không phải "n giây kể từ lần gửi trước". Xem dstock/replication/triggers.py.
-Xong phần của mình: XÓA dòng pytestmark bên dưới.
+Test chưa làm có dấu @pytest.mark.todo ngay trên nó. Làm xong việc nào thì xóa dấu của đúng
+các test của việc đó (dấu optional=True chỉ xóa khi làm phần tùy chọn) và chạy chúng 3 lần liên tiếp đều xanh.
 """
 import time
 
@@ -11,10 +12,9 @@ import pytest
 from dstock.replication.triggers import CountTrigger, IntervalTrigger
 from harness import SPEC_LINKS
 
-pytestmark = pytest.mark.todo
-
 
 # ---------------------------------------------------------------- unit (không cần mạng)
+@pytest.mark.todo
 def test_count_trigger():
     t = CountTrigger(3)
     assert not t.due(2, 99, 99)
@@ -23,6 +23,7 @@ def test_count_trigger():
     assert t.due(2, 0, 0)
 
 
+@pytest.mark.todo
 def test_interval_trigger_tinh_tu_entry_cho_cu_nhat():
     t = IntervalTrigger(2)
     assert not t.due(5, 99, 1.0)           # rảnh lâu (since_last_flush lớn) nhưng entry mới chờ 1s
@@ -30,6 +31,7 @@ def test_interval_trigger_tinh_tu_entry_cho_cu_nhat():
 
 
 # ---------------------------------------------------------------- tích hợp
+@pytest.mark.todo
 def test_N4_chi_nhan_khi_N2_du_n_lan(make_cluster):
     c = make_cluster(links=SPEC_LINKS)     # count n = 3
     c.nhap("P1", "SP01:1")
@@ -44,6 +46,7 @@ def test_N4_chi_nhan_khi_N2_du_n_lan(make_cluster):
     assert c.lsn("N4") == 3                # lần thứ 4 phải chờ thêm 2 lần nữa
 
 
+@pytest.mark.todo
 def test_giam_n_luc_dang_don_thi_gui_ngay(make_cluster):
     c = make_cluster(links=SPEC_LINKS)
     for i in range(2):
@@ -55,6 +58,7 @@ def test_giam_n_luc_dang_don_thi_gui_ngay(make_cluster):
     assert c.wait_lsn("N4", 2, timeout=1.5)
 
 
+@pytest.mark.todo
 def test_ranh_lau_roi_ghi_van_phai_cho_n_giay(make_cluster):
     """Lỗi kinh điển: cụm rảnh > n giây rồi ghi -> phiếu KHÔNG được tới N3 ngay."""
     c = make_cluster(links=SPEC_LINKS)     # interval n = 1s
@@ -89,6 +93,7 @@ def test_N3_cap_nhat_theo_chu_ky_n_giay(make_cluster):
     assert c.wait_lsn("N3", c.lsn("N1"), timeout=1.5)
 
 
+@pytest.mark.todo
 def test_doi_chu_ky_lon_xuong_nho(make_cluster):
     c = make_cluster(links=SPEC_LINKS)
     c.client.set_link_param("N3", 30)

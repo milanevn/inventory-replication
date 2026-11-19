@@ -8,7 +8,7 @@
 
 - [ ] `pytest` toàn bộ xanh trên máy mình
 - [ ] Test của mình chạy 3 lần liên tiếp đều xanh
-- [ ] Đã xóa `pytestmark = pytest.mark.todo(...)` của các test đã làm xong
+- [ ] Đã xóa dấu `@pytest.mark.todo` của các test đã làm xong
 - [ ] Đã thử bằng GUI hoặc CLI (ghi lệnh ở mục dưới)
 - [ ] Chỉ sửa file của module đang làm; file dùng chung thì đã báo trong nhóm
 - [ ] Nếu sửa `proto/`: đã chạy `python scripts/gen_proto.py` và commit file sinh ra

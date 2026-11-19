@@ -26,7 +26,7 @@ cd inventory-replication
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-pytest                          # kết quả đúng: 47 passed, 43 skipped
+pytest                          # đúng khi không có test nào failed; skipped là phần chưa làm
 ```
 
 Không cần cài `protoc`: code sinh từ file `.proto` đã có sẵn trong `dstock/rpc/`. Muốn xem CSDL thì cài thêm DB Browser for SQLite.

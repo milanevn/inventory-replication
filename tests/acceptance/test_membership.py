@@ -1,7 +1,8 @@
 """PING định kỳ, luật đa số, nhận lại node quay về, heartbeat của kênh.
 
 File được sửa: dstock/membership.py, các chỗ TODO trong dstock/replication/link.py.
-Làm xong thì xóa dòng pytestmark (và dấu todo tùy chọn nếu làm) rồi chạy file này 3 lần liên tiếp đều xanh.
+Test chưa làm có dấu @pytest.mark.todo ngay trên nó. Làm xong việc nào thì xóa dấu của đúng
+các test của việc đó (dấu optional=True chỉ xóa khi làm phần tùy chọn) và chạy chúng 3 lần liên tiếp đều xanh.
 """
 import json
 import time
@@ -10,9 +11,8 @@ import pytest
 
 from harness import wait_until
 
-pytestmark = pytest.mark.todo
 
-
+@pytest.mark.todo
 def test_mat_mot_node_van_ghi_mat_hai_node_thi_tu_choi(make_cluster):
     c = make_cluster()
     assert c.nhap("PN1", "SP01:5").ok
@@ -25,6 +25,7 @@ def test_mat_mot_node_van_ghi_mat_hai_node_thi_tu_choi(make_cluster):
     assert c.lsn("N1") == 2                           # không cấp LSN nào khi thiếu đa số
 
 
+@pytest.mark.todo
 def test_co_lai_da_so_thi_ghi_tiep(make_cluster):
     c = make_cluster()
     c.stop("N2")
@@ -35,6 +36,7 @@ def test_co_lai_da_so_thi_ghi_tiep(make_cluster):
     assert c.nhap("PN1", "SP01:1").ok
 
 
+@pytest.mark.todo
 def test_da_so_tinh_theo_danh_sach_thanh_vien_hien_tai(make_cluster):
     """Sau khi nâng bản chính, thành viên có thể chỉ còn 2 -> đa số = 2. Mô phỏng bằng meta."""
     c = make_cluster()
@@ -55,6 +57,7 @@ def _gia_lap_nang(c, nid, members, epoch=1):
         node.apply_role()
 
 
+@pytest.mark.todo
 def test_node_bi_loai_quay_lai_duoc_nhan_lai_vao_cum(make_cluster):
     """N1, N2 chết, N3 được nâng với thành viên [N3, N4]. N2 sống lại thì N3 phải nhận N2 vào cụm
     lại và đẩy dữ liệu cho nó (PING phải gửi cả tới node ngoài danh sách thành viên)."""
@@ -72,6 +75,7 @@ def test_node_bi_loai_quay_lai_duoc_nhan_lai_vao_cum(make_cluster):
     assert c.wait_lsn("N2", 3, timeout=5)
 
 
+@pytest.mark.todo
 def test_heartbeat_phat_hien_dich_sap_khi_khong_co_ghi(make_cluster):
     c = make_cluster()
     c.nhap("PN1", "SP01:1")
@@ -80,6 +84,7 @@ def test_heartbeat_phat_hien_dich_sap_khi_khong_co_ghi(make_cluster):
     assert wait_until(lambda: c.link("N1", "N3").state == "DOWN", timeout=3)
 
 
+@pytest.mark.todo
 def test_heartbeat_phat_hien_dich_mat_du_lieu(make_cluster):
     """N3 lên lại bị mất đuôi dữ liệu (còn 1/3 entry) mà KHÔNG có ghi mới: kênh không được tiếp tục
     tin acked_lsn=3 cũ — heartbeat phải thấy N3 tụt và gửi bù."""

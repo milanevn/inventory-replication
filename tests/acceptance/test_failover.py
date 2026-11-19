@@ -2,7 +2,8 @@
 
 File được sửa: dstock/failover.py, đoạn TODO trong services.ReplicationService.Append (STALE_EPOCH,
 nhận nhiệm kỳ mới).
-Làm xong thì xóa dòng pytestmark bên dưới và chạy file này 3 lần liên tiếp đều xanh.
+Test chưa làm có dấu @pytest.mark.todo ngay trên nó. Làm xong việc nào thì xóa dấu của đúng
+các test của việc đó (dấu optional=True chỉ xóa khi làm phần tùy chọn) và chạy chúng 3 lần liên tiếp đều xanh.
 """
 import json
 
@@ -13,8 +14,6 @@ from dstock.client import ClusterClient
 from dstock.domain import Line
 from dstock.rpc import dstock_pb2 as pb
 from harness import wait_until
-
-pytestmark = pytest.mark.todo
 
 
 def _role(c, nid):
@@ -38,6 +37,7 @@ def _ghi(c, n, start=0):
         assert c.nhap(f"PN{i}", "SP01:1").ok
 
 
+@pytest.mark.todo
 def test_N1_N2_sap_nang_N3_len_ban_chinh(make_cluster):
     c = make_cluster()
     _ghi(c, 4)
@@ -53,6 +53,7 @@ def test_N1_N2_sap_nang_N3_len_ban_chinh(make_cluster):
     assert wait_until(lambda: _role(c, "N3") == "PRIMARY", timeout=3)
 
 
+@pytest.mark.todo
 def test_client_moi_tu_tim_ra_ban_chinh_moi(make_cluster):
     c = make_cluster()
     _ghi(c, 2)
@@ -68,6 +69,7 @@ def test_client_moi_tu_tim_ra_ban_chinh_moi(make_cluster):
         fresh.close()
 
 
+@pytest.mark.todo
 def test_tu_choi_nang_khi_node_bi_loai_van_con_song(make_cluster):
     c = make_cluster()
     _ghi(c, 2)
@@ -78,6 +80,7 @@ def test_tu_choi_nang_khi_node_bi_loai_van_con_song(make_cluster):
     assert c.client.status("N1").role == "PRIMARY" and c.client.status("N3").epoch == 0
 
 
+@pytest.mark.todo
 def test_tu_choi_nang_node_khong_moi_nhat(make_cluster):
     c = make_cluster()
     c.stop("N4")                                            # N4 tắt trong lúc ghi -> tụt
@@ -93,6 +96,7 @@ def test_tu_choi_nang_node_khong_moi_nhat(make_cluster):
     assert _nang(c, "N3", ["N1", "N2"]).role == "PRIMARY"
 
 
+@pytest.mark.todo
 def test_ban_sao_tu_choi_ban_chinh_cu_bang_epoch(make_cluster):
     c = make_cluster()
     _ghi(c, 2)
@@ -107,6 +111,7 @@ def test_ban_sao_tu_choi_ban_chinh_cu_bang_epoch(make_cluster):
     assert not reply.ok and reply.error == "STALE_EPOCH" and reply.epoch == 1
 
 
+@pytest.mark.todo
 def test_nhan_nhiem_ky_moi_qua_node_trung_gian(make_cluster):
     """N4 chỉ nhận từ N2, nên có thể biết nhiệm kỳ mới qua N2 (vd: N3, N4 cùng được nhận lại một
     lượt, cụm về sơ đồ bình thường). N4 phải lấy bản chính từ primary_id gửi kèm, không từ from_node."""
@@ -121,6 +126,7 @@ def test_nhan_nhiem_ky_moi_qua_node_trung_gian(make_cluster):
     assert (st.epoch, st.primary_id, list(st.members)) == (1, "N1", ca_cum)
 
 
+@pytest.mark.todo
 def test_ban_chinh_cu_quay_lai_tu_ha_cap_va_luu_entry_mo_coi(make_cluster):
     c = make_cluster()
     _ghi(c, 4)
@@ -143,6 +149,7 @@ def test_ban_chinh_cu_quay_lai_tu_ha_cap_va_luu_entry_mo_coi(make_cluster):
     assert not r.ok and r.error.startswith("NOT_PRIMARY") and r.primary_hint == "N3"
 
 
+@pytest.mark.todo
 def test_N1_chet_mot_minh_nang_tay_N2(make_cluster):
     """N1 chết một mình (vẫn còn đa số 3/4): không tự bầu, nâng tay node mới nhất."""
     c = make_cluster()
@@ -155,6 +162,7 @@ def test_N1_chet_mot_minh_nang_tay_N2(make_cluster):
     assert c.wait_converged(ids=("N2", "N3", "N4"), timeout=3)   # chế độ sự cố: N2 đẩy tới N3, N4
 
 
+@pytest.mark.todo
 def test_N1_song_mat_2_ban_sao_thu_hep_thanh_vien(make_cluster):
     """N2 và N3 chết (mất đa số): bắt buộc ghi tiếp thì thu hẹp thành viên ngay trên N1.
     N2 bị loại nên N4 không còn nguồn theo sơ đồ đề -> N1 đẩy thẳng tới N4 (chế độ sự cố)."""
@@ -169,6 +177,7 @@ def test_N1_song_mat_2_ban_sao_thu_hep_thanh_vien(make_cluster):
     assert c.wait_lsn("N4", 3, timeout=3)
 
 
+@pytest.mark.todo
 def test_tu_choi_nang_khi_chi_con_1_node(make_cluster):
     c = make_cluster()
     _ghi(c, 1)
