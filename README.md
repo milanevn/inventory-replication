@@ -21,8 +21,8 @@ Tài liệu: [kiến trúc và các quyết định thiết kế](docs/architect
 Cần Python 3.12.
 
 ```bash
-git clone <repo-url> dstock
-cd dstock
+git clone https://github.com/milanevn/inventory-replication.git
+cd inventory-replication
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
@@ -52,7 +52,7 @@ Chạy mỗi máy một node, các lệnh khác và cách xử lý sự cố: xe
 
 ## Mở lại dự án
 
-Mỗi lần mở terminal mới (PowerShell), đứng ở thư mục `dstock` rồi chạy:
+Mỗi lần mở terminal mới (PowerShell), đứng ở thư mục `inventory-replication` rồi chạy:
 
 ```powershell
 .venv\Scripts\Activate.ps1                       # đầu dòng lệnh hiện (.venv) là được

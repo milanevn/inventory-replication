@@ -102,6 +102,6 @@ Viết test mới thì dùng fixture `make_cluster` (`tests/harness.py`). Fixtur
 
 ## Trên Windows
 
-- Nên clone vào đường dẫn không dấu, ví dụ `D:\dstock`.
+- Nên clone vào đường dẫn không dấu, ví dụ `D:\inventory-replication`.
 - Cổng 7001 đến 7004 bị chiếm thì chạy `python scripts/stop_cluster.py`, hoặc `netstat -ano | findstr 700` để tìm tiến trình cũ.
 - Các lệnh cần chạy mỗi lần mở lại dự án và cách làm lại từ đầu: xem mục "Mở lại dự án" và "Làm lại từ đầu" trong [README](README.md).
