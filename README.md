@@ -18,7 +18,7 @@ Tài liệu: [kiến trúc và các quyết định thiết kế](docs/architect
 
 ## Cài đặt lần đầu
 
-Cài trước: [Python](https://www.python.org/downloads/) từ 3.11 tới 3.14, khuyên dùng 3.12 (khi cài nhớ tích "Add python.exe to PATH"), và [Git for Windows](https://git-scm.com/download/win). CI chạy test trên cả 4 bản này. Kiểm tra trong PowerShell:
+Cài trước: [Python](https://www.python.org/downloads/) từ 3.11 tới 3.14, khuyên dùng 3.12 (khi cài nhớ tích "Add python.exe to PATH"), và [Git for Windows](https://git-scm.com/download/win). CI chạy trên 3.12; các bản 3.11, 3.13, 3.14 đã chạy thử đủ test và đều xanh. Kiểm tra trong PowerShell:
 
 ```powershell
 py -0                           # liệt kê các bản Python đã cài; cần có một bản từ 3.11 tới 3.14
