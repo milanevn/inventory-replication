@@ -98,5 +98,5 @@ Nếu nguồn phục hồi cũng đang chết (ví dụ N4 hỏng trong lúc N2 
 
 - Cổng 7001 đến 7004 bị chiếm: còn tiến trình node cũ. Chạy `python scripts/stop_cluster.py`, hoặc `netstat -ano | findstr 700` để tìm rồi tắt.
 - Node vừa bật lại mà CLI báo `UNAVAILABLE`: kênh gRPC đang kết nối lại, đợi khoảng một giây rồi thử lại.
-- In tiếng Việt ra console bị lỗi: dùng Python 3.12 và chạy qua các script trong repo, chúng đã chuyển console sang UTF-8.
+- In tiếng Việt ra console bị lỗi: dùng Python từ 3.11 tới 3.14 và chạy qua các script trong repo, chúng đã chuyển console sang UTF-8.
 - Máy khác không thấy node: kiểm tra IP trong `cluster.lan.toml`, firewall, và hai máy có cùng mạng không.

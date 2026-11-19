@@ -9,11 +9,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15          # một test treo không giữ job tới 6 tiếng
+    strategy:
+      fail-fast: false
+      matrix:
+        # Thành viên có thể dùng bản Python khác nhau: kiểm mọi bản được hỗ trợ (3.11 là tối thiểu).
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: pip
       - run: pip install -r requirements.txt
       - run: pytest -q

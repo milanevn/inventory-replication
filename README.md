@@ -16,20 +16,43 @@ Client <-> N1 ---- ngay lập tức ----> N2 ---- sau n lần cập nhật ---->
 
 Tài liệu: [kiến trúc và các quyết định thiết kế](docs/architecture.md), [vận hành](docs/operations.md), [kịch bản demo](docs/demo.md). Cách đóng góp code xem [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Cài đặt
+## Cài đặt lần đầu
 
-Cần Python 3.12.
+Cài trước: [Python](https://www.python.org/downloads/) từ 3.11 tới 3.14, khuyên dùng 3.12 (khi cài nhớ tích "Add python.exe to PATH"), và [Git for Windows](https://git-scm.com/download/win). CI chạy test trên cả 4 bản này. Kiểm tra trong PowerShell:
 
-```bash
+```powershell
+py -0                           # liệt kê các bản Python đã cài; cần có một bản từ 3.11 tới 3.14
+git --version
+```
+
+Máy đã có sẵn 3.11, 3.13 hoặc 3.14 thì dùng luôn, không cần cài thêm 3.12: ở các lệnh dưới, thay `-3.12` bằng bản đang có (ví dụ `py -3.13`). Dưới 3.11 thì không chạy được.
+
+Khai báo tên và email cho commit, làm một lần trên mỗi máy. Không muốn lộ email thật thì dùng email dạng `...@users.noreply.github.com` trong GitHub, mục Settings > Emails.
+
+```powershell
+git config --global user.name "Ten Cua Ban"
+git config --global user.email "email-dung-cho-github@example.com"
+```
+
+Clone vào thư mục có đường dẫn không dấu, ví dụ `D:\inventory-replication`: đường dẫn tiếng Việt dễ làm hỏng các lệnh Python và gRPC.
+
+```powershell
+cd D:\
 git clone https://github.com/milanevn/inventory-replication.git
 cd inventory-replication
-python -m venv .venv
-.venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
+py -3.12 -m venv .venv          # ghi rõ bản Python để .venv không lấy nhầm bản khác trên máy
+.venv\Scripts\Activate.ps1      # đầu dòng lệnh hiện (.venv) là được
 pip install -r requirements.txt
 pytest                          # đúng khi không có test nào failed; skipped là phần chưa làm
 ```
 
-Không cần cài `protoc`: code sinh từ file `.proto` đã có sẵn trong `dstock/rpc/`. Muốn xem CSDL thì cài thêm DB Browser for SQLite.
+- PowerShell báo `running scripts is disabled` ở bước kích hoạt: chạy một lần `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` rồi kích hoạt lại.
+- macOS/Linux: tạo bằng `python3.12 -m venv .venv` (hoặc bản 3.11–3.14 đang có), kích hoạt bằng `source .venv/bin/activate`.
+- `requirements.txt` cố định phiên bản thư viện để cả nhóm chạy giống nhau; các bản này đều có sẵn bản cài cho Windows từ Python 3.10 trở lên. Riêng Python thì phải từ 3.11 vì code dùng `tomllib`.
+- Lần `git push` đầu tiên, Git mở trình duyệt để đăng nhập GitHub; đăng nhập đúng tài khoản đã được mời vào repo.
+- Không cần cài `protoc`: code sinh từ file `.proto` đã có sẵn trong `dstock/rpc/`. Muốn xem CSDL thì cài thêm DB Browser for SQLite.
+
+Cài xong thì chạy thử ở mục dưới, rồi đọc [CONTRIBUTING.md](CONTRIBUTING.md) (nhánh, commit, PR), [docs/architecture.md](docs/architecture.md) và docstring đầu module của phần mình.
 
 ## Chạy thử
 
@@ -71,7 +94,7 @@ Chọn mức nhẹ nhất đủ dùng:
 |---|---|
 | Muốn kho trống, chạy lại demo | `python scripts/stop_cluster.py` rồi `python scripts/run_cluster.py --clean --gui` |
 | Lỡ đóng terminal, node còn chạy ngầm, cổng 7001–7004 bị chiếm | `python scripts/stop_cluster.py` |
-| `.venv` hỏng, đổi phiên bản Python, hoặc vừa chuyển thư mục dự án sang chỗ khác | xóa `.venv` (`Remove-Item -Recurse -Force .venv`) rồi làm lại các bước ở mục Cài đặt |
+| `.venv` hỏng, đổi phiên bản Python, hoặc vừa chuyển thư mục dự án sang chỗ khác | xóa `.venv` (`Remove-Item -Recurse -Force .venv`) rồi làm lại từ bước `py -3.12 -m venv .venv` ở mục Cài đặt lần đầu |
 | Code trên máy lộn xộn, muốn quay về `main` | `git stash` (cất thay đổi, lấy lại bằng `git stash pop`), rồi `git switch main` và `git pull` |
 
 `--clean` chỉ xóa thư mục `data/` (CSDL, checkpoint, log của các node), không đụng tới code. `.venv` gắn với đường dẫn lúc tạo, nên chuyển thư mục dự án là phải tạo lại.

@@ -99,7 +99,7 @@ Viết test mới thì dùng fixture `make_cluster` (`tests/harness.py`). Fixtur
 
 ## Cài đặt GitHub (làm một lần)
 
-- Branch protection cho `main`: bật "Require a pull request before merging" với 1 approval, và "Require status checks to pass" với job `test`.
+- Branch protection cho `main`: bật "Require a pull request before merging" với 1 approval, và "Require status checks to pass" với cả 4 job `test (3.11)`, `test (3.12)`, `test (3.13)`, `test (3.14)`.
 - Settings, General: chỉ bật "Allow merge commits", bật "Automatically delete head branches" để nhánh của việc tự bị xóa sau khi merge.
 
 ## Trên Windows
