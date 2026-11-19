@@ -4,41 +4,43 @@
 
 `main` lúc nào cũng phải chạy được và test xanh. Không ai push thẳng lên `main`; mọi thay đổi vào qua pull request.
 
-Mỗi module có một nhánh riêng, đặt đúng tên module, dùng suốt đồ án. Merge vào `main` xong thì không xóa, làm tiếp trên nhánh đó.
+Mỗi việc một nhánh ngắn: tạo từ `main` mới nhất, mở PR, merge xong thì nhánh tự bị xóa. Việc tiếp theo tạo nhánh mới, kể cả khi cùng module.
 
-| Nhánh | Phần việc |
-|---|---|
-| `failover` | nâng bản chính, epoch, chặn bản chính cũ |
-| `membership` | PING, đa số, nhận lại node, heartbeat trong `link.py` |
-| `triggers` | gửi sau n giây, sau n lần |
-| `client` | chế độ chỉ đọc khi mất bản chính |
-| `recovery` | phục hồi khi dữ liệu tổn hại |
-| `faults` | gây lỗi mạng |
-| `gui` | bảng điều khiển |
-| `docs` | tài liệu |
+Tên nhánh: `<loại>/<phạm vi>-<mô tả>`, viết thường, không dấu, nối bằng gạch ngang.
 
-Phần việc của module cần sửa sang file khác thì vẫn làm trên nhánh của module đó.
+- `<loại>` giống loại commit: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`.
+- `<phạm vi>` là module chính bị sửa: `failover`, `membership`, `link`, `triggers`, `client`, `recovery`, `faults`, `gui`, `proto`, `docs`, …
+- `<mô tả>` 2–4 từ nói việc đó làm gì.
 
-Tạo nhánh lần đầu:
+```
+feat/failover-promote
+feat/membership-ping
+feat/link-heartbeat
+feat/triggers-interval
+fix/link-stale-epoch
+test/recovery-mat-duoi
+docs/demo-cat-kenh
+```
+
+Làm một việc:
 
 ```bash
 git switch main && git pull
-git switch -c membership
-git push -u origin membership
+git switch -c feat/membership-ping
+# code, commit
+git push -u origin feat/membership-ping   # rồi mở PR trên GitHub
 ```
 
-Những lần sau:
+Trong lúc chờ duyệt mà `main` có thay đổi mới, hoặc PR báo xung đột:
 
 ```bash
-git switch membership
-# code, commit
 git fetch origin
 git merge origin/main          # lấy phần người khác đã merge, sửa xung đột nếu có
 pytest
 git push
 ```
 
-Nên merge `main` vào nhánh của mình ít nhất mỗi tuần và luôn trước khi mở PR, để nhánh không lệch xa `main`. Dùng `git merge`, không dùng `git rebase` trên nhánh đã push.
+Dùng `git merge`, không dùng `git rebase` trên nhánh đã push. Giữ nhánh ngắn: nhánh sống quá một tuần thì nên tách việc nhỏ hơn. PR đã merge thì về `main`, `git pull` rồi tạo nhánh mới cho việc sau; xóa nhánh cũ trên máy bằng `git branch -d <tên nhánh>`.
 
 ## Commit
 
@@ -56,7 +58,7 @@ PR được merge bằng merge commit, nên mọi commit trên nhánh đều đi
 ## Pull request
 
 1. Chạy `pytest` trên máy mình, toàn bộ phải xanh. CI sẽ chạy lại `pytest` trên GitHub.
-2. Mở PR từ nhánh module vào `main` và điền mẫu PR. Xong một phần là mở PR, không đợi làm hết module.
+2. Mở PR từ nhánh của việc vào `main` và điền mẫu PR. Xong một việc là mở PR, không đợi làm hết module.
 3. Cần một người khác duyệt. Không tự duyệt PR của mình.
 4. CI đỏ thì không merge.
 5. Giữ PR nhỏ, khoảng dưới 300 dòng thay đổi. Việc lớn thì chia thành nhiều PR.
@@ -98,7 +100,7 @@ Viết test mới thì dùng fixture `make_cluster` (`tests/harness.py`). Fixtur
 ## Cài đặt GitHub (làm một lần)
 
 - Branch protection cho `main`: bật "Require a pull request before merging" với 1 approval, và "Require status checks to pass" với job `test`.
-- Settings, General: chỉ bật "Allow merge commits", tắt "Automatically delete head branches" để nhánh module không bị xóa sau khi merge.
+- Settings, General: chỉ bật "Allow merge commits", bật "Automatically delete head branches" để nhánh của việc tự bị xóa sau khi merge.
 
 ## Trên Windows
 
